@@ -1,5 +1,8 @@
 import 'dart:async';
-import 'package:bus_tracker/map_component.dart';
+import 'package:bus_tracker/bus_tracker_buses.dart';
+import 'package:bus_tracker/favourite_routes.dart';
+
+import 'bus_tracker_routes.dart';
 import 'package:flutter/material.dart';
 import 'splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -28,6 +31,7 @@ class AppEntry extends StatelessWidget {
 
 class _MispBusTrackerState extends State<MispBusTracker> {
   bool isLoaded = false;
+  bool isLoadedVisible = false;
 
   void initFirebase() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -35,9 +39,15 @@ class _MispBusTrackerState extends State<MispBusTracker> {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+
       Timer(const Duration(seconds: 1), () {
         setState(() {
           isLoaded = true;
+        });
+        Timer(const Duration(milliseconds: 300), () {
+          setState(() {
+            isLoadedVisible = true;
+          });
         });
       });
     } catch (e) {
@@ -55,25 +65,18 @@ class _MispBusTrackerState extends State<MispBusTracker> {
   }
 
   Widget getCurrentComponent() {
-    return isLoaded
-        ? Scaffold(
-            appBar: AppBar(
-              title: const Text('Bus Tracker'),
-            ),
-            body: Container(
-              padding: const EdgeInsets.all(10),
-              child: MapComponent(),
-            ),
-          )
-        : const SplashScreen();
+    return isLoadedVisible ? BusTrackerRoutes() : SplashScreen(isLoaded);
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: SafeArea(
-        child: getCurrentComponent(),
-      ),
+      routes: {
+        '/routes': (context) => BusTrackerRoutes(),
+        '/buses': (context) => BusTrackerBuses(),
+        '/fav': (context) => BusTrackerFavouriteRoutes(),
+      },
+      home: getCurrentComponent(),
     );
   }
 }
