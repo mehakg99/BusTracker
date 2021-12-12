@@ -56,6 +56,7 @@ class BusTrackerBusesState extends State<BusTrackerBuses> {
               PageRouteBuilder(
                 pageBuilder: (c, a1, a2) => MapComponent(
                   busNumber: bw.busNumber,
+                  routeNumber: widget.routeNumber,
                 ),
                 transitionsBuilder: (c, anim, a2, child) =>
                     FadeTransition(opacity: anim, child: child),

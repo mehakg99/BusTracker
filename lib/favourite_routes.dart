@@ -44,7 +44,9 @@ class BusTrackerFavouriteRoutesState extends State<BusTrackerFavouriteRoutes> {
             context,
             // MaterialPageRoute(builder: (context) => BusTrackerBuses()),
             PageRouteBuilder(
-              pageBuilder: (c, a1, a2) => BusTrackerBuses(),
+              pageBuilder: (c, a1, a2) => BusTrackerBuses(
+                routeNumber: rw.routeId,
+              ),
               transitionsBuilder: (c, anim, a2, child) =>
                   FadeTransition(opacity: anim, child: child),
               transitionDuration: Duration(milliseconds: 300),
