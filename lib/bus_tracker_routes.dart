@@ -78,6 +78,9 @@ class _BusTrackerRoutesState extends State<BusTrackerRoutes> {
   getRoutes() async {
     FirebaseDatabase database = FirebaseDatabase.instance;
     DatabaseReference ref = FirebaseDatabase.instance.ref("routes/");
+    print('reached here');
+    DatabaseEvent event = await ref.once();
+    print('data ${event.snapshot.value}');
     Stream<DatabaseEvent> stream = ref.onValue;
     stream.listen((DatabaseEvent event) {
       // print(event.snapshot.value); // DatabaseEventType.value;\

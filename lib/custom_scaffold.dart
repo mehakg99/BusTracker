@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 
 class MyScaffold extends StatefulWidget {
   final Widget body;
+  final Widget floatingActionButton;
   String title = 'hi';
 
   // ignore: use_key_in_widget_constructors
-  MyScaffold({required this.body, required this.title});
+  MyScaffold(
+      {required this.body,
+      required this.title,
+      this.floatingActionButton = const Text('')});
 
   @override
   State<MyScaffold> createState() => _MyScaffoldState();
@@ -32,6 +36,8 @@ class _MyScaffoldState extends State<MyScaffold> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+          floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+          floatingActionButton: widget.floatingActionButton,
           appBar: AppBar(
             title: Text(widget.title),
           ),
