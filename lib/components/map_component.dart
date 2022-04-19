@@ -19,8 +19,8 @@ class BusWidget {
   BusWidget.fromList(List<dynamic> list)
       : busNumber = list[0] as String,
         busType = list[1] as String,
-        lat = list[2] as double,
-        long = list[3] as double;
+        lat = double.parse(list[2] as String),
+        long = double.parse(list[3] as String);
 }
 
 class MapComponent extends StatefulWidget {
@@ -60,7 +60,8 @@ class _MapComponentState extends State<MapComponent> {
         busDetails = {};
         try {
           busDetails = (json.decode(json.encode(event.snapshot.value)));
-          updatePinOnMap(busDetails['lat'], busDetails['lon']);
+          updatePinOnMap(double.parse(busDetails['lat'] as String),
+              double.parse(busDetails['lon'] as String));
         } catch (e) {
           print('error getting routes ${e}');
         }

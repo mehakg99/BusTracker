@@ -1,7 +1,7 @@
 import 'package:bus_tracker/bus_tracker_buses.dart';
 import 'dart:math' show cos, sqrt, asin;
 import 'package:flutter/material.dart';
-import 'package:bus_tracker/map_component.dart';
+import 'package:bus_tracker/components/map_component.dart';
 import 'dart:async';
 import 'custom_scaffold.dart';
 import 'dart:convert';
@@ -28,8 +28,8 @@ class BusWidget {
   BusWidget.fromJson(Map<dynamic, dynamic> json)
       : busNumber = json['busNumber'] as String,
         busType = json['busType'] as String,
-        lat = json['lat'] as double,
-        long = json['lon'] as double;
+        lat = double.parse(json['lat'] as String),
+        long = double.parse(json['lon'] as String);
 }
 
 class BusTrackerBusesState extends State<BusTrackerBuses> {
