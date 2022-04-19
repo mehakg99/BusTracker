@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:bus_tracker/bus_tracker_buses.dart';
 import 'package:bus_tracker/components/floating_input_field.dart';
 import 'package:bus_tracker/components/map_v2.dart';
+import 'package:bus_tracker/components/pickup_component.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker/components/map_component.dart';
 import 'dart:async';
@@ -28,8 +29,11 @@ class _SelectDestinationState extends State<SelectDestination> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Stack(alignment: Alignment.bottomCenter, children: [
-          Column(
+        resizeToAvoidBottomInset: false,
+        body: Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.max,
               children: [
@@ -39,25 +43,21 @@ class _SelectDestinationState extends State<SelectDestination> {
                       MapComponentV2(),
                       Padding(
                           padding: EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 10),
-                          child: FloatingInputField()),
+                              vertical: 20, horizontal: 10),
+                          child: FloatingInputField(
+                            title: "Destination",
+                          )),
                     ],
                   ),
                 ),
-              ]),
-          FractionallySizedBox(
-            heightFactor: 0.3,
-            child: Container(
-              width: double.infinity,
-              height: double.infinity,
-              child: const Text('hi2'),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(10)),
-              ),
+              ],
             ),
-          )
-        ]),
+            const FractionallySizedBox(
+              heightFactor: 0.4,
+              child: PickUpComponent(),
+            ),
+          ],
+        ),
       ),
     );
   }
