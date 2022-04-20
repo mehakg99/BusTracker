@@ -1,15 +1,15 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:bus_tracker/bus_tracker_buses.dart';
 import 'package:flutter/material.dart';
-import 'package:bus_tracker/components/map_component.dart';
 import 'dart:async';
 import 'custom_scaffold.dart';
 import 'saved_states.dart' as savedStates;
 import 'package:firebase_database/firebase_database.dart';
 
 class BusTrackerRoutes extends StatefulWidget {
+  const BusTrackerRoutes({Key? key}) : super(key: key);
+
   @override
   State<BusTrackerRoutes> createState() => _BusTrackerRoutesState();
 }
@@ -31,7 +31,7 @@ class _BusTrackerRoutesState extends State<BusTrackerRoutes> {
   Widget singleCard(MapEntry entry) {
     RouteWidget rw = RouteWidget.fromJson((entry.value));
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 1.5),
+      padding: const EdgeInsets.symmetric(vertical: 1.5),
       child: Card(
         child: ListTile(
           onTap: () => Navigator.push(
@@ -43,7 +43,7 @@ class _BusTrackerRoutesState extends State<BusTrackerRoutes> {
               ),
               transitionsBuilder: (c, anim, a2, child) =>
                   FadeTransition(opacity: anim, child: child),
-              transitionDuration: Duration(milliseconds: 300),
+              transitionDuration: const Duration(milliseconds: 300),
             ),
           ),
           title: Text(rw.title),
@@ -77,10 +77,8 @@ class _BusTrackerRoutesState extends State<BusTrackerRoutes> {
 
   getRoutes() async {
     FirebaseDatabase database = FirebaseDatabase.instance;
-    DatabaseReference ref = FirebaseDatabase.instance.ref("routes/");
-    print('reached here');
-    DatabaseEvent event = await ref.once();
-    print('data ${event.snapshot.value}');
+    DatabaseReference ref = database.ref("routes/");
+    await ref.once();
     Stream<DatabaseEvent> stream = ref.onValue;
     stream.listen((DatabaseEvent event) {
       // print(event.snapshot.value); // DatabaseEventType.value;\
@@ -90,7 +88,7 @@ class _BusTrackerRoutesState extends State<BusTrackerRoutes> {
         try {
           routes = (json.decode(json.encode(event.snapshot.value)));
         } catch (e) {
-          print('error getting routes ${e}');
+          print('error getting routes $e');
         }
       });
     });

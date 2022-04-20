@@ -1,10 +1,8 @@
 // ignore_for_file: use_function_type_syntax_for_parameters
 import 'dart:async';
-import 'dart:math';
 import 'dart:convert';
 import 'package:bus_tracker/custom_scaffold.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -50,7 +48,7 @@ class _MapComponentState extends State<MapComponent> {
 
   getLocation() async {
     FirebaseDatabase database = FirebaseDatabase.instance;
-    DatabaseReference ref = FirebaseDatabase.instance
+    DatabaseReference ref = database
         .ref("routes/${widget.routeNumber}/buses/${widget.busNumber}/");
     Stream<DatabaseEvent> stream = ref.onValue;
     stream.listen((DatabaseEvent event) {
@@ -63,7 +61,7 @@ class _MapComponentState extends State<MapComponent> {
           updatePinOnMap(double.parse(busDetails['lat'] as String),
               double.parse(busDetails['lon'] as String));
         } catch (e) {
-          print('error getting routes ${e}');
+          print('error getting routes $e');
         }
       });
     });
@@ -100,6 +98,7 @@ class _MapComponentState extends State<MapComponent> {
             0.001);
   }
 
+  @override
   initState() {
     super.initState();
     getLocation();
@@ -201,16 +200,16 @@ class _MapComponentState extends State<MapComponent> {
       ),
       floatingActionButton: showRecenter()
           ? Padding(
-              padding: EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.only(bottom: 20),
               child: FloatingActionButton.extended(
                 onPressed: () {
                   reCenterCamera();
                 },
-                label: Text('Re-center'),
-                icon: Icon(Icons.navigation),
+                label: const Text('Re-center'),
+                icon: const Icon(Icons.navigation),
               ),
             )
-          : Text(''),
+          : const Text(''),
     );
   }
 }

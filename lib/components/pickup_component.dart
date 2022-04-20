@@ -1,19 +1,21 @@
 import 'package:bus_tracker/components/list_tile.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class PickUpComponent extends StatefulWidget {
-  const PickUpComponent({Key? key}) : super(key: key);
+  final Function setSource;
+  const PickUpComponent({Key? key, required this.setSource}) : super(key: key);
 
   @override
   _PickUpComponentState createState() => _PickUpComponentState();
 }
 
 class _PickUpComponentState extends State<PickUpComponent> {
+  void handleTileTap(String title, String subtitle) {}
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 6),
+      margin: const EdgeInsets.symmetric(horizontal: 6),
       width: double.infinity,
       height: double.infinity,
       child: Column(
@@ -21,10 +23,10 @@ class _PickUpComponentState extends State<PickUpComponent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.only(left: 20, top: 15),
+            padding: const EdgeInsets.only(left: 20, top: 15),
             child: Row(
-              children: [
-                const Text(
+              children: const [
+                Text(
                   'Pickup Location',
                   style: TextStyle(
                     fontFamily: 'roboto',
@@ -39,16 +41,22 @@ class _PickUpComponentState extends State<PickUpComponent> {
           Expanded(
             child: SingleChildScrollView(
               child: Column(
-                children: const [
+                children: [
                   ListTileCustom(
                     title: 'hi',
                     subtitle: 'distance: 1km',
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.home,
                       color: Colors.blue,
                     ),
+                    onTap: () {
+                      widget.setSource(
+                        lat: 30.73,
+                        lng: 76.77,
+                      );
+                    },
                   ),
-                  ListTileCustom(
+                  const ListTileCustom(
                     title: 'hi',
                     subtitle: 'distance: 2km',
                     icon: Icon(
@@ -69,10 +77,10 @@ class _PickUpComponentState extends State<PickUpComponent> {
             color: Colors.grey.withOpacity(0.5),
             spreadRadius: 5,
             blurRadius: 7,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(4),
           topRight: Radius.circular(4),
         ),

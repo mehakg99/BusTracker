@@ -1,15 +1,15 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:bus_tracker/bus_tracker_buses.dart';
 import 'package:flutter/material.dart';
-import 'package:bus_tracker/components/map_component.dart';
 import 'dart:async';
 import 'custom_scaffold.dart';
-import 'saved_states.dart' as savedStates;
+import 'saved_states.dart' as saved_states;
 import 'package:firebase_database/firebase_database.dart';
 
 class BusTrackerFavouriteRoutes extends StatefulWidget {
+  const BusTrackerFavouriteRoutes({Key? key}) : super(key: key);
+
   @override
   State<BusTrackerFavouriteRoutes> createState() =>
       BusTrackerFavouriteRoutesState();
@@ -31,13 +31,13 @@ class RouteWidget {
 class BusTrackerFavouriteRoutesState extends State<BusTrackerFavouriteRoutes> {
   Widget singleCard(MapEntry entry) {
     RouteWidget rw = RouteWidget.fromJson((entry.value));
-    if (!savedStates.favouriteRoutes.contains(rw.routeId)) {
+    if (!saved_states.favouriteRoutes.contains(rw.routeId)) {
       return const SizedBox(
         height: 0,
       );
     }
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 1.5),
+      padding: const EdgeInsets.symmetric(vertical: 1.5),
       child: Card(
         child: ListTile(
           onTap: () => Navigator.push(
@@ -49,7 +49,7 @@ class BusTrackerFavouriteRoutesState extends State<BusTrackerFavouriteRoutes> {
               ),
               transitionsBuilder: (c, anim, a2, child) =>
                   FadeTransition(opacity: anim, child: child),
-              transitionDuration: Duration(milliseconds: 300),
+              transitionDuration: const Duration(milliseconds: 300),
             ),
           ),
           title: Text(rw.title),
@@ -59,15 +59,15 @@ class BusTrackerFavouriteRoutesState extends State<BusTrackerFavouriteRoutes> {
             children: [
               IconButton(
                   onPressed: () {
-                    if (!savedStates.favouriteRoutes.contains(rw.routeId)) {
-                      savedStates.favouriteRoutes.add(rw.routeId);
+                    if (!saved_states.favouriteRoutes.contains(rw.routeId)) {
+                      saved_states.favouriteRoutes.add(rw.routeId);
                     } else {
-                      savedStates.favouriteRoutes.remove(rw.routeId);
+                      saved_states.favouriteRoutes.remove(rw.routeId);
                     }
                   },
                   icon: Icon(
                     Icons.star,
-                    color: savedStates.favouriteRoutes.contains(rw.routeId)
+                    color: saved_states.favouriteRoutes.contains(rw.routeId)
                         ? Colors.amber
                         : Colors.grey,
                   ))
@@ -83,7 +83,7 @@ class BusTrackerFavouriteRoutesState extends State<BusTrackerFavouriteRoutes> {
 
   getRoutes() async {
     FirebaseDatabase database = FirebaseDatabase.instance;
-    DatabaseReference ref = FirebaseDatabase.instance.ref("routes/");
+    DatabaseReference ref = database.ref("routes/");
     Stream<DatabaseEvent> stream = ref.onValue;
     stream.listen((DatabaseEvent event) {
       // print(event.snapshot.value); // DatabaseEventType.value;\
@@ -93,7 +93,7 @@ class BusTrackerFavouriteRoutesState extends State<BusTrackerFavouriteRoutes> {
         try {
           routes = (json.decode(json.encode(event.snapshot.value)));
         } catch (e) {
-          print('error getting routes ${e}');
+          print('error getting routes $e');
         }
       });
     });
@@ -118,7 +118,7 @@ class BusTrackerFavouriteRoutesState extends State<BusTrackerFavouriteRoutes> {
       RouteWidget rw = RouteWidget.fromJson((entry.value));
       return rw.routeId;
     }).toList())
-            .where((element) => savedStates.favouriteRoutes.contains(element))
+            .where((element) => saved_states.favouriteRoutes.contains(element))
             .toList()
             .isNotEmpty
         ? Column(

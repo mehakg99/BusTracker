@@ -1,15 +1,8 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:bus_tracker/bus_tracker_buses.dart';
 import 'package:bus_tracker/components/floating_input_field.dart';
 import 'package:bus_tracker/components/map_v2.dart';
 import 'package:bus_tracker/components/pickup_component.dart';
 import 'package:flutter/material.dart';
-import 'package:bus_tracker/components/map_component.dart';
-import 'dart:async';
-import '../custom_scaffold.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class SelectDestination extends StatefulWidget {
   const SelectDestination({Key? key}) : super(key: key);
@@ -22,6 +15,20 @@ class _SelectDestinationState extends State<SelectDestination> {
   @override
   initState() {
     super.initState();
+  }
+
+  LatLng? destination, source;
+
+  void setDestination({required double lat, required double lng}) {
+    setState(() {
+      destination = LatLng(lat, lng);
+    });
+  }
+
+  void setSource({required double lat, required double lng}) {
+    setState(() {
+      source = LatLng(lat, lng);
+    });
   }
 
   //
@@ -39,22 +46,28 @@ class _SelectDestinationState extends State<SelectDestination> {
               children: [
                 Expanded(
                   child: Stack(
-                    children: const [
-                      MapComponentV2(),
+                    children: [
+                      MapComponentV2(
+                        destination: destination,
+                        source: source,
+                      ),
                       Padding(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                               vertical: 20, horizontal: 10),
                           child: FloatingInputField(
                             title: "Destination",
+                            setDestination: setDestination,
                           )),
                     ],
                   ),
                 ),
               ],
             ),
-            const FractionallySizedBox(
+            FractionallySizedBox(
               heightFactor: 0.4,
-              child: PickUpComponent(),
+              child: PickUpComponent(
+                setSource: setSource,
+              ),
             ),
           ],
         ),

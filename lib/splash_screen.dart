@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
-  bool _loaded = false;
+  late final bool _loaded;
   SplashScreen(isLoaded, {Key? key}) : super(key: key) {
     _loaded = isLoaded;
   }

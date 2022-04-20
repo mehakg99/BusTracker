@@ -1,10 +1,12 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:search_choices/search_choices.dart';
 
 class FloatingInputField extends StatefulWidget {
   final String title;
-  const FloatingInputField({Key? key, this.title = ""}) : super(key: key);
+  final Function setDestination;
+  const FloatingInputField(
+      {Key? key, this.title = "", required this.setDestination})
+      : super(key: key);
 
   @override
   State<FloatingInputField> createState() => _FloatingInputFieldState();
@@ -34,20 +36,12 @@ class _FloatingInputFieldState extends State<FloatingInputField> {
   ];
   @override
   Widget build(BuildContext context) {
-    // return TextFormField(
-    //   decoration: InputDecoration(
-    //     filled: true,
-    //     border: OutlineInputBorder(),
-    //     fillColor: Colors.white,
-    //     labelText: title,
-    //   ),
-    // );
     return Padding(
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       child: SearchChoices.single(
         items: cities,
         value: destination,
-        hint: SizedBox(
+        hint: const SizedBox(
           height: 48,
           child: Padding(
             padding: EdgeInsets.only(top: 15),
@@ -56,6 +50,10 @@ class _FloatingInputFieldState extends State<FloatingInputField> {
         ),
         searchHint: "select",
         onChanged: (value) {
+          widget.setDestination(
+            lat: 30.74,
+            lng: 76.77,
+          );
           setState(() {
             destination = value;
           });

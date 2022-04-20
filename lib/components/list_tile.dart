@@ -1,12 +1,16 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ListTileCustom extends StatefulWidget {
   final String title;
   final String subtitle;
   final Icon icon;
+  final Function? onTap;
   const ListTileCustom(
-      {Key? key, this.title = "", this.subtitle = "", required this.icon})
+      {Key? key,
+      this.title = "",
+      this.subtitle = "",
+      required this.icon,
+      this.onTap})
       : super(key: key);
 
   @override
@@ -17,10 +21,14 @@ class _ListTileCustomState extends State<ListTileCustom> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 1.5),
+      padding: const EdgeInsets.symmetric(vertical: 1.5),
       child: Card(
         child: ListTile(
-          onTap: () {},
+          onTap: () {
+            if (widget.onTap != null) {
+              widget.onTap!();
+            }
+          },
           title: Text(widget.title),
           subtitle: Text(widget.subtitle),
           leading: Column(

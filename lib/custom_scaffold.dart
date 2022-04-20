@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 class MyScaffold extends StatefulWidget {
   final Widget body;
   final Widget floatingActionButton;
-  String title = 'hi';
+  final String title;
 
   // ignore: use_key_in_widget_constructors
-  MyScaffold(
+  const MyScaffold(
       {required this.body,
       required this.title,
       this.floatingActionButton = const Text('')});
@@ -26,7 +26,7 @@ class _MyScaffoldState extends State<MyScaffold> {
         pageBuilder: (c, a1, a2) => widget,
         transitionsBuilder: (c, anim, a2, child) =>
             FadeTransition(opacity: anim, child: child),
-        transitionDuration: Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 300),
       ),
       (Route<dynamic> route) => false,
     );
@@ -46,9 +46,9 @@ class _MyScaffoldState extends State<MyScaffold> {
             unselectedItemColor: Colors.black54,
             onTap: (newIndex) {
               if (newIndex == 1) {
-                setPage(BusTrackerFavouriteRoutes());
+                setPage(const BusTrackerFavouriteRoutes());
               } else {
-                setPage(BusTrackerRoutes());
+                setPage(const BusTrackerRoutes());
               }
             },
             items: const <BottomNavigationBarItem>[
@@ -62,7 +62,7 @@ class _MyScaffoldState extends State<MyScaffold> {
               ),
             ],
           ),
-          body: this.widget.body),
+          body: widget.body),
     );
   }
 }

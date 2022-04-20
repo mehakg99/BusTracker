@@ -1,4 +1,3 @@
-import 'package:bus_tracker/bus_tracker_buses.dart';
 import 'dart:math' show cos, sqrt, asin;
 import 'package:flutter/material.dart';
 import 'package:bus_tracker/components/map_component.dart';
@@ -38,7 +37,7 @@ class BusTrackerBusesState extends State<BusTrackerBuses> {
     try {
       BusWidget bw = BusWidget.fromJson((entry.value));
       return Padding(
-        padding: EdgeInsets.symmetric(vertical: 1.5),
+        padding: const EdgeInsets.symmetric(vertical: 1.5),
         child: Card(
           child: ListTile(
             leading: Column(
@@ -60,7 +59,7 @@ class BusTrackerBusesState extends State<BusTrackerBuses> {
                 ),
                 transitionsBuilder: (c, anim, a2, child) =>
                     FadeTransition(opacity: anim, child: child),
-                transitionDuration: Duration(milliseconds: 300),
+                transitionDuration: const Duration(milliseconds: 300),
               ),
             ),
             title: Text('${bw.busNumber} ${bw.busType}'),
@@ -83,7 +82,7 @@ class BusTrackerBusesState extends State<BusTrackerBuses> {
         ),
       );
     } catch (e) {
-      return Text('');
+      return const Text('');
     }
   }
 
@@ -118,7 +117,7 @@ class BusTrackerBusesState extends State<BusTrackerBuses> {
   getBuses() async {
     FirebaseDatabase database = FirebaseDatabase.instance;
     DatabaseReference ref =
-        FirebaseDatabase.instance.ref("routes/${widget.routeNumber}/buses/");
+        database.ref("routes/${widget.routeNumber}/buses/");
     Stream<DatabaseEvent> stream = ref.onValue;
     stream.listen((DatabaseEvent event) {
       // print(event.snapshot.value); // DatabaseEventType.value;\
@@ -128,7 +127,7 @@ class BusTrackerBusesState extends State<BusTrackerBuses> {
         try {
           buses = (json.decode(json.encode(event.snapshot.value)));
         } catch (e) {
-          print('error getting routes ${e}');
+          print('error getting routes $e');
         }
       });
     });
@@ -163,7 +162,6 @@ class BusTrackerBusesState extends State<BusTrackerBuses> {
                       style: TextStyle(fontSize: 16, color: Colors.black54),
                     )),
               );
-    ;
     return MyScaffold(
       title: 'Buses',
       body: AnimatedOpacity(
