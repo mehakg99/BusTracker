@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:bus_tracker/bus_tracker_buses.dart';
 import 'package:flutter/material.dart';
-import 'package:bus_tracker/map_component.dart';
+import 'package:bus_tracker/components/map_component.dart';
 import 'dart:async';
 import 'custom_scaffold.dart';
 import 'saved_states.dart' as savedStates;
@@ -78,6 +78,9 @@ class _BusTrackerRoutesState extends State<BusTrackerRoutes> {
   getRoutes() async {
     FirebaseDatabase database = FirebaseDatabase.instance;
     DatabaseReference ref = FirebaseDatabase.instance.ref("routes/");
+    print('reached here');
+    DatabaseEvent event = await ref.once();
+    print('data ${event.snapshot.value}');
     Stream<DatabaseEvent> stream = ref.onValue;
     stream.listen((DatabaseEvent event) {
       // print(event.snapshot.value); // DatabaseEventType.value;\

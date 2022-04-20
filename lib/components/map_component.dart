@@ -1,5 +1,6 @@
 // ignore_for_file: use_function_type_syntax_for_parameters
 import 'dart:async';
+import 'dart:math';
 import 'dart:convert';
 import 'package:bus_tracker/custom_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -18,8 +19,8 @@ class BusWidget {
   BusWidget.fromList(List<dynamic> list)
       : busNumber = list[0] as String,
         busType = list[1] as String,
-        lat = list[2] as double,
-        long = list[3] as double;
+        lat = double.parse(list[2] as String),
+        long = double.parse(list[3] as String);
 }
 
 class MapComponent extends StatefulWidget {
@@ -37,6 +38,15 @@ class _MapComponentState extends State<MapComponent> {
 
   Map busDetails = {};
   bool mapLoading = true;
+  CameraPosition cameraPosition = const CameraPosition(
+    zoom: 14.4746,
+    tilt: 0,
+    bearing: 0,
+    target: LatLng(
+      30.55,
+      76.71,
+    ),
+  );
 
   getLocation() async {
     FirebaseDatabase database = FirebaseDatabase.instance;
@@ -50,8 +60,8 @@ class _MapComponentState extends State<MapComponent> {
         busDetails = {};
         try {
           busDetails = (json.decode(json.encode(event.snapshot.value)));
-          print('before update');
-          updatePinOnMap(busDetails['lat'], busDetails['lon']);
+          updatePinOnMap(double.parse(busDetails['lat'] as String),
+              double.parse(busDetails['lon'] as String));
         } catch (e) {
           print('error getting routes ${e}');
         }
@@ -70,7 +80,6 @@ class _MapComponentState extends State<MapComponent> {
   );
 
   void updatePinOnMap(double lat, double long) async {
-    print('updating camera position ${lat} ${long}');
     CameraPosition cPosition = CameraPosition(
       zoom: 14.4746,
       tilt: 0,
@@ -84,6 +93,13 @@ class _MapComponentState extends State<MapComponent> {
     controller.animateCamera(CameraUpdate.newCameraPosition(cPosition));
   }
 
+  bool showRecenter() {
+    return !((cameraPosition.target.longitude - marker.target.longitude).abs() <
+            0.001 &&
+        (cameraPosition.target.latitude - marker.target.latitude).abs() <
+            0.001);
+  }
+
   initState() {
     super.initState();
     getLocation();
@@ -92,6 +108,23 @@ class _MapComponentState extends State<MapComponent> {
         mapLoading = false;
       });
     });
+  }
+
+  reCenterCamera() async {
+    CameraPosition cPosition = CameraPosition(
+      zoom: 14.4746,
+      tilt: 0,
+      bearing: 0,
+      target: LatLng(
+        marker.target.latitude,
+        marker.target.longitude,
+      ),
+    );
+    setState(() {
+      cameraPosition = cPosition;
+    });
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(cPosition));
   }
 
   @override
@@ -134,10 +167,14 @@ class _MapComponentState extends State<MapComponent> {
         zoom: 14.4746,
       );
     });
-    print('inside map position ${marker.target}');
     return MyScaffold(
       title: 'Map : ${widget.routeNumber} ${widget.busNumber}',
       body: GoogleMap(
+        onCameraMove: (CameraPosition position) {
+          setState(() {
+            cameraPosition = position;
+          });
+        },
         mapType: MapType.normal,
         initialCameraPosition: marker,
         onMapCreated: (GoogleMapController controller) {
@@ -162,6 +199,18 @@ class _MapComponentState extends State<MapComponent> {
           ),
         },
       ),
+      floatingActionButton: showRecenter()
+          ? Padding(
+              padding: EdgeInsets.only(bottom: 20),
+              child: FloatingActionButton.extended(
+                onPressed: () {
+                  reCenterCamera();
+                },
+                label: Text('Re-center'),
+                icon: Icon(Icons.navigation),
+              ),
+            )
+          : Text(''),
     );
   }
 }

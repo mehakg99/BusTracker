@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bus_tracker/bus_tracker_buses.dart';
 import 'package:bus_tracker/favourite_routes.dart';
+import 'package:bus_tracker/pages/select_destination.dart';
 
 import 'bus_tracker_routes.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +66,7 @@ class _MispBusTrackerState extends State<MispBusTracker> {
   }
 
   Widget getCurrentComponent() {
-    return isLoadedVisible ? BusTrackerRoutes() : SplashScreen(isLoaded);
+    return isLoadedVisible ? SelectDestination() : SplashScreen(isLoaded);
   }
 
   @override
@@ -73,8 +74,6 @@ class _MispBusTrackerState extends State<MispBusTracker> {
     return MaterialApp(
       routes: {
         '/routes': (context) => BusTrackerRoutes(),
-        '/buses': (context) => BusTrackerBuses(),
-        '/fav': (context) => BusTrackerFavouriteRoutes(),
       },
       home: getCurrentComponent(),
     );

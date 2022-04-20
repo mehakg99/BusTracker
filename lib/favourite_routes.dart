@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:bus_tracker/bus_tracker_buses.dart';
 import 'package:flutter/material.dart';
-import 'package:bus_tracker/map_component.dart';
+import 'package:bus_tracker/components/map_component.dart';
 import 'dart:async';
 import 'custom_scaffold.dart';
 import 'saved_states.dart' as savedStates;
