@@ -19,9 +19,13 @@ class _SelectDestinationState extends State<SelectDestination> {
 
   LatLng? destination, source;
 
-  void setDestination({required double lat, required double lng}) {
+  void setDestination({required double? lat, required double? lng}) {
     setState(() {
-      destination = LatLng(lat, lng);
+      if (lat != null && lng != null) {
+        destination = LatLng(lat, lng);
+      } else {
+        destination = null;
+      }
     });
   }
 
@@ -55,6 +59,8 @@ class _SelectDestinationState extends State<SelectDestination> {
                           padding: const EdgeInsets.symmetric(
                               vertical: 20, horizontal: 10),
                           child: FloatingInputField(
+                            destination: destination,
+                            source: source,
                             title: "Destination",
                             setDestination: setDestination,
                           )),
