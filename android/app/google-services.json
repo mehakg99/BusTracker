@@ -1,0 +1,83 @@
+{
+  "project_info": {
+    "project_number": "375720614595",
+    "firebase_url": "https://bustracker-5fa9d-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "bustracker-5fa9d",
+    "storage_bucket": "bustracker-5fa9d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:375720614595:android:be0c40215a9100fce7e076",
+        "android_client_info": {
+          "package_name": "com.example.bus_tracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "375720614595-2m9n7fm4d307uog2edbnmrjo6nmr6vtt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpdqxl5Swf6wtRGncTxD2RKK-tp8hrL5c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "375720614595-2m9n7fm4d307uog2edbnmrjo6nmr6vtt.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "375720614595-1u4uiuesbi468k14bed5en75lhgbn8el.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.bustracker"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:375720614595:android:1e1c6f2ef78f2ad2e7e076",
+        "android_client_info": {
+          "package_name": "com.misp.hack_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "375720614595-2m9n7fm4d307uog2edbnmrjo6nmr6vtt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpdqxl5Swf6wtRGncTxD2RKK-tp8hrL5c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "375720614595-2m9n7fm4d307uog2edbnmrjo6nmr6vtt.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "375720614595-1u4uiuesbi468k14bed5en75lhgbn8el.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.bustracker"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,12 +1,14 @@
 import 'dart:async';
 
+import 'package:bus_tracker/models/Location.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapComponentV2 extends StatefulWidget {
-  final LatLng? destination, source;
-  const MapComponentV2({Key? key, this.destination, this.source})
+  final Location? destination, source;
+  const MapComponentV2(
+      {Key? key, required this.destination, required this.source})
       : super(key: key);
 
   @override
@@ -21,12 +23,12 @@ class _MapComponentV2State extends State<MapComponentV2> {
       return {
         Marker(
           markerId: const MarkerId('destination'),
-          position: widget.destination!,
+          position: LatLng(widget.destination!.lat, widget.destination!.lng),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         ),
         Marker(
           markerId: const MarkerId('source'),
-          position: widget.source!,
+          position: LatLng(widget.source!.lat, widget.source!.lng),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
         ),
       };
@@ -34,7 +36,7 @@ class _MapComponentV2State extends State<MapComponentV2> {
       return {
         Marker(
           markerId: const MarkerId('destination'),
-          position: widget.destination!,
+          position: LatLng(widget.destination!.lat, widget.destination!.lng),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         ),
       };
@@ -42,7 +44,7 @@ class _MapComponentV2State extends State<MapComponentV2> {
       return {
         Marker(
           markerId: const MarkerId('source'),
-          position: widget.source!,
+          position: LatLng(widget.source!.lat, widget.source!.lng),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
         ),
       };

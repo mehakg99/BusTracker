@@ -1,18 +1,21 @@
 import 'package:bus_tracker/components/single_child_scroll_view.dart';
+import 'package:bus_tracker/models/Location.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class FloatingInputField extends StatefulWidget {
   final String title;
   final Function setDestination;
-  final LatLng? destination;
-  final LatLng? source;
+  final Location? destination;
+  final Location? source;
+  final List<Location> listData;
   const FloatingInputField({
     Key? key,
     this.title = "",
     required this.setDestination,
     required this.destination,
     required this.source,
+    required this.listData,
   }) : super(key: key);
 
   @override
@@ -20,33 +23,23 @@ class FloatingInputField extends StatefulWidget {
 }
 
 class _FloatingInputFieldState extends State<FloatingInputField> {
-  List<DropdownMenuItem> cities = const [
-    DropdownMenuItem(
-      child: Text(
-        'Bangalore',
-      ),
-      value: LatLng(30.74, 76.77),
-    ),
-    DropdownMenuItem(
-      child: Text('Bangalore 2'),
-      value: 2,
-    ),
-    DropdownMenuItem(
-      child: Text('Bangalore 3'),
-      value: 3,
-    ),
-    DropdownMenuItem(
-      child: Text('Bangalore 4'),
-      value: 4,
-    ),
-  ];
+  getStops() {
+    return widget.listData.map((busStop) {
+      return DropdownMenuItem(
+          child: Text(
+            busStop.name,
+          ),
+          value: busStop.name);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10),
       child: SearchChoices.single(
-        items: cities,
-        value: widget.destination,
+        items: getStops(),
+        value: widget.destination?.name,
         hint: const SizedBox(
           height: 48,
           child: Padding(
@@ -56,13 +49,13 @@ class _FloatingInputFieldState extends State<FloatingInputField> {
         ),
         searchHint: "select",
         onClear: () {
-          widget.setDestination(lat: null, lng: null);
+          widget.setDestination(null);
         },
         onChanged: (value) {
-          widget.setDestination(
-            lat: 30.74,
-            lng: 76.77,
-          );
+          print(value);
+          Location locationObject =
+              widget.listData.firstWhere((element) => element.name == value);
+          widget.setDestination(locationObject);
         },
         isExpanded: true,
       ),

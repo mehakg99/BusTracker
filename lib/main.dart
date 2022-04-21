@@ -4,10 +4,12 @@ import 'package:bus_tracker/pages/select_destination.dart';
 import 'bus_tracker_routes.dart';
 import 'package:flutter/material.dart';
 import 'splash_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+
 import 'firebase_options.dart';
 
-void main() {
+void main() async {
   runApp(const AppEntry());
 }
 
@@ -30,28 +32,21 @@ class AppEntry extends StatelessWidget {
 class _MispBusTrackerState extends State<MispBusTracker> {
   bool isLoaded = false;
   bool isLoadedVisible = false;
+  initFirebase() async {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
-  void initFirebase() async {
-    WidgetsFlutterBinding.ensureInitialized();
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-
-      Timer(const Duration(seconds: 1), () {
+    Timer(const Duration(seconds: 1), () {
+      setState(() {
+        isLoaded = true;
+      });
+      Timer(const Duration(milliseconds: 300), () {
         setState(() {
-          isLoaded = true;
-        });
-        Timer(const Duration(milliseconds: 300), () {
-          setState(() {
-            isLoadedVisible = true;
-          });
+          isLoadedVisible = true;
         });
       });
-    } catch (e) {
-      // ignore: avoid_print
-      print('Firebase connection Error');
-    }
+    });
   }
 
   @override
