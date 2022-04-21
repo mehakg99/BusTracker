@@ -1,16 +1,56 @@
 import 'package:bus_tracker/components/list_tile.dart';
 import 'package:flutter/material.dart';
 
+import 'package:bus_tracker/models/Location.dart';
+import 'package:geolocator/geolocator.dart';
+
 class PickUpComponent extends StatefulWidget {
-  final Function setSource;
-  const PickUpComponent({Key? key, required this.setSource}) : super(key: key);
+  final void Function(Location?) setSource;
+  final Location? source;
+  final List<Location> listData;
+  final Stream<Position>? positionStream;
+  const PickUpComponent(
+      {Key? key,
+      required this.setSource,
+      required this.source,
+      required this.listData,
+      required this.positionStream})
+      : super(key: key);
 
   @override
   _PickUpComponentState createState() => _PickUpComponentState();
 }
 
 class _PickUpComponentState extends State<PickUpComponent> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
   void handleTileTap(String title, String subtitle) {}
+
+  List<ListTileCustom> getPickupLocations(Position? position) {
+    List distanceList = widget.listData
+        .map((Location busStop) => {
+              "busStop": busStop,
+              "distance": busStop.distanceFromPosition(position!)
+            })
+        .toList();
+    distanceList.sort((a, b) => a["distance"].compareTo(b["distance"]));
+    return distanceList.sublist(0, 2).map((busStop) {
+      return ListTileCustom(
+        title: busStop["busStop"].name,
+        subtitle: busStop["distance"].toString(),
+        icon: const Icon(
+          Icons.home,
+          color: Colors.blue,
+        ),
+        onTap: () {
+          widget.setSource(busStop["busStop"]);
+        },
+      );
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,31 +80,22 @@ class _PickUpComponentState extends State<PickUpComponent> {
           ),
           Expanded(
             child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  ListTileCustom(
-                    title: 'hi',
-                    subtitle: 'distance: 1km',
-                    icon: const Icon(
-                      Icons.home,
-                      color: Colors.blue,
+              child: StreamBuilder<Position>(
+                stream: widget.positionStream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Column(
+                      children: getPickupLocations(snapshot.data),
+                    );
+                  } else {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 48),
+                      child: CircularProgressIndicator(),
                     ),
-                    onTap: () {
-                      widget.setSource(
-                        lat: 30.73,
-                        lng: 76.77,
-                      );
-                    },
-                  ),
-                  const ListTileCustom(
-                    title: 'hi',
-                    subtitle: 'distance: 2km',
-                    icon: Icon(
-                      Icons.home,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ],
+                  );
+                  }
+                },
               ),
             ),
           ),
