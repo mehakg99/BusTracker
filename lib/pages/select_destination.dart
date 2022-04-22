@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bus_tracker/components/floating_input_field.dart';
 import 'package:bus_tracker/components/map_v2.dart';
 import 'package:bus_tracker/components/pickup_component.dart';
+import 'package:bus_tracker/components/route_selector.dart';
 import 'package:bus_tracker/components/selected_source.dart';
 import 'package:bus_tracker/models/Location.dart';
 import 'package:geolocator/geolocator.dart';
@@ -23,6 +24,10 @@ class SelectDestination extends StatefulWidget {
 
 class _SelectDestinationState extends State<SelectDestination> {
   List<Location> destinationsData = [];
+
+  setRoute() {
+    //  TODO: set route here
+  }
   getDestinations() async {
     CollectionReference busStops =
         FirebaseFirestore.instance.collection("/busStops");
@@ -164,8 +169,10 @@ class _SelectDestinationState extends State<SelectDestination> {
                         listData: destinationsData,
                       )
                     : (source != null && destination != null)
-                        ? Container(
-                            color: Colors.red, child: Text('select a route'))
+                        ? RouteSelector(
+                            source: source,
+                            destination: destination,
+                            setRoute: setRoute)
                         : Container())),
             // TODO: SHOW LOCATION PERMISSION MODAL HERE
           ],
