@@ -4,19 +4,19 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class Location {
-  late final DocumentReference<Map<String, dynamic>> route;
+  late final List<dynamic> routes;
   late final String name;
   late final double lat, lng;
   Location(
       {required this.name,
       required this.lat,
       required this.lng,
-      required this.route}) {}
+      required this.routes}) {}
   Location.fromDoc(doc) {
     name = doc['name'];
     lat = doc['lat'];
     lng = doc['lng'];
-    route = doc['route'];
+    routes = doc['routes'];
   }
 
   double distanceFromLatLng(LatLng position) {

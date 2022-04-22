@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bus_tracker/components/floating_input_field.dart';
 import 'package:bus_tracker/components/map_v2.dart';
 import 'package:bus_tracker/components/pickup_component.dart';
+import 'package:bus_tracker/components/selected_source.dart';
 import 'package:bus_tracker/models/Location.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
@@ -133,6 +134,12 @@ class _SelectDestinationState extends State<SelectDestination> {
                         source: source,
                         positionStream: positionStream,
                       ),
+                      (source != null)
+                          ? SelectedSource(
+                              setSource: setSource,
+                              source: source!.name,
+                            )
+                          : Text('hi'),
                       Padding(
                           padding: const EdgeInsets.symmetric(
                               vertical: 20, horizontal: 10),
@@ -149,14 +156,17 @@ class _SelectDestinationState extends State<SelectDestination> {
               ],
             ),
             FractionallySizedBox(
-              heightFactor: 0.4,
-              child: PickUpComponent(
-                source: source,
-                setSource: setSource,
-                listData: destinationsData,
-                positionStream: positionStream,
-              ),
-            ),
+                heightFactor: 0.4,
+                child: ((source == null)
+                    ? PickUpComponent(
+                        source: source,
+                        setSource: setSource,
+                        listData: destinationsData,
+                      )
+                    : (source != null && destination != null)
+                        ? Container(
+                            color: Colors.red, child: Text('select a route'))
+                        : Container())),
             // TODO: SHOW LOCATION PERMISSION MODAL HERE
           ],
         ),

@@ -4,18 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:bus_tracker/models/Location.dart';
 import 'package:geolocator/geolocator.dart';
 
+const LocationSettings locationSettings = LocationSettings(
+  accuracy: LocationAccuracy.high,
+  distanceFilter: 100,
+);
+
 class PickUpComponent extends StatefulWidget {
   final void Function(Location?) setSource;
   final Location? source;
   final List<Location> listData;
-  final Stream<Position>? positionStream;
-  const PickUpComponent(
-      {Key? key,
-      required this.setSource,
-      required this.source,
-      required this.listData,
-      required this.positionStream})
-      : super(key: key);
+  const PickUpComponent({
+    Key? key,
+    required this.setSource,
+    required this.source,
+    required this.listData,
+  }) : super(key: key);
 
   @override
   _PickUpComponentState createState() => _PickUpComponentState();
@@ -81,19 +84,21 @@ class _PickUpComponentState extends State<PickUpComponent> {
           Expanded(
             child: SingleChildScrollView(
               child: StreamBuilder<Position>(
-                stream: widget.positionStream,
+                stream: Geolocator.getPositionStream(
+                    locationSettings: locationSettings),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     return Column(
                       children: getPickupLocations(snapshot.data),
                     );
                   } else {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 48),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
+                    print(snapshot);
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 48),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
                   }
                 },
               ),
