@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EmergencyContacts extends StatefulWidget {
   const EmergencyContacts({Key? key}) : super(key: key);
@@ -20,7 +21,7 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
               padding: EdgeInsets.only(bottom: 5),
               child: Card(
                 child: ListTile(
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.person,
                     size: 35,
                   ),
@@ -39,8 +40,9 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
                               element["name"] == item["name"] &&
                               element["contact"] == item["contact"]);
                         });
+                        _removeContact(item["name"]);
                       },
-                      child: Icon(
+                      child: const Icon(
                         Icons.delete,
                         color: Colors.red,
                       )),
@@ -51,11 +53,31 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
     return list;
   }
 
+  _removeContact(name) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove(name);
+  }
+
+  _saveContact(userName, userContact) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setInt(userName, int.parse(userContact));
+  }
+
+  _getContacts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys();
+    final prefsMap = Map<String, int?>();
+    for (String key in keys) {
+      prefsMap[key] = prefs.getInt(key);
+    }
+  }
+
   void submitHandler() {
     if (_formKey.currentState!.validate()) {
       setState(() {
         userDets.add({'name': name, 'contact': contact});
       });
+      _saveContact(name, contact);
       Navigator.pop(context, 'Save');
     }
   }
@@ -121,6 +143,11 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
     );
   }
 
+  void clearPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -131,11 +158,16 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
         body: Padding(
           padding: const EdgeInsets.all(15),
           child: userDets.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No contacts added',
-                    style: TextStyle(
-                      fontSize: 25,
+              ? GestureDetector(
+                  onTap: () {
+                    clearPrefs();
+                  },
+                  child: const Center(
+                    child: Text(
+                      'No contacts added',
+                      style: TextStyle(
+                        fontSize: 25,
+                      ),
                     ),
                   ),
                 )

@@ -27,8 +27,8 @@ class MapComponentV2 extends StatefulWidget {
 class _MapComponentV2State extends State<MapComponentV2> {
   final Completer<GoogleMapController> _controller = Completer();
 
-  Set<Marker> getMarkers(Position? position,
-      AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>>? busSnapshot) {
+  Set<Marker> getMarkers(
+      Position? position, AsyncSnapshot<QuerySnapshot>? busSnapshot) {
     Set<Marker> markers = position == null
         ? {}
         : {
@@ -72,14 +72,9 @@ class _MapComponentV2State extends State<MapComponentV2> {
         ),
       });
     }
-    if (busSnapshot != null &&
-        busSnapshot.hasData &&
-        busSnapshot.data != null) {
-      print('data meraaa');
-      print(busSnapshot.data!.docs);
 
-      busSnapshot.data!.docs.map((DocumentSnapshot document) {
-        print('data bus');
+    if (busSnapshot != null) {
+      busSnapshot.data!.docs.forEach((DocumentSnapshot document) {
         print(document.data());
       });
     }
@@ -101,8 +96,8 @@ class _MapComponentV2State extends State<MapComponentV2> {
     return temp;
   }
 
-  GoogleMap googleMapBuilder(snapshot,
-      AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> busSnapshot) {
+  GoogleMap googleMapBuilder(
+      snapshot, AsyncSnapshot<QuerySnapshot> busSnapshot) {
     return GoogleMap(
       // onCameraMove: (CameraPosition position) {
       //   setState(() {
@@ -114,8 +109,7 @@ class _MapComponentV2State extends State<MapComponentV2> {
       onMapCreated: (GoogleMapController controller) {
         _controller.complete(controller);
       },
-      markers: (busSnapshot != null &&
-              busSnapshot.connectionState != ConnectionState.waiting)
+      markers: (busSnapshot.connectionState != ConnectionState.waiting)
           ? getMarkers(snapshot.data, busSnapshot)
           : getMarkers(snapshot.data, null),
     );
@@ -127,16 +121,15 @@ class _MapComponentV2State extends State<MapComponentV2> {
       child: StreamBuilder<Position>(
           stream: widget.positionStream,
           builder: (context, snapshot) {
-            return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            return StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('routes')
                   .where('route',
                       isEqualTo:
                           (widget.route != null) ? (widget.route!.id) : (null))
                   .snapshots(),
-              builder: (context,
-                  AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>>
-                      busSnapshot) {
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> busSnapshot) {
                 return googleMapBuilder(snapshot, busSnapshot);
               },
             );
