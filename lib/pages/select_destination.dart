@@ -29,12 +29,14 @@ class _SelectDestinationState extends State<SelectDestination> {
 
   getDestinations() async {
     CollectionReference busStops =
-        FirebaseFirestore.instance.collection("/busStops");
+        FirebaseFirestore.instance.collection("busStops");
 
     QuerySnapshot querySnapshot = await busStops.get();
 
-    destinationsData =
-        querySnapshot.docs.map((doc) => Location.fromDoc(doc)).toList();
+    setState(() {
+      destinationsData =
+          querySnapshot.docs.map((doc) => Location.fromDoc(doc)).toList();
+    });
   }
 
   @override
@@ -134,63 +136,76 @@ class _SelectDestinationState extends State<SelectDestination> {
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        body: Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Expanded(
-                  child: Stack(
+        body: StreamBuilder<Position>(
+            stream: positionStream,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Center(
+                  child: Text('Error: ${snapshot.error}'),
+                );
+              }
+              Position? currentPosition = snapshot.data;
+              return Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.max,
                     children: [
-                      MapComponentV2(
-                        route: route,
-                        destination: destination,
-                        source: source,
-                        positionStream: positionStream,
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            MapComponentV2(
+                              route: route,
+                              destination: destination,
+                              source: source,
+                              currentPosition: currentPosition,
+                              isLoading: !snapshot.hasData,
+                            ),
+                            (source != null)
+                                ? SelectedSource(
+                                    setSource: setSource,
+                                    source: source!.name,
+                                  )
+                                : Container(),
+                            Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 20, horizontal: 10),
+                                child: FloatingInputField(
+                                  destination: destination,
+                                  source: source,
+                                  title: "Destination",
+                                  listData: destinationsData,
+                                  setDestination: setDestination,
+                                )),
+                          ],
+                        ),
                       ),
-                      (source != null)
-                          ? SelectedSource(
-                              setSource: setSource,
-                              source: source!.name,
-                            )
-                          : Container(),
-                      Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 20, horizontal: 10),
-                          child: FloatingInputField(
-                            destination: destination,
-                            source: source,
-                            title: "Destination",
-                            listData: destinationsData,
-                            setDestination: setDestination,
-                          )),
                     ],
                   ),
-                ),
-              ],
-            ),
-            FractionallySizedBox(
-                heightFactor: 0.4,
-                child: ((source == null)
-                    ? PickUpComponent(
-                        source: source,
-                        setSource: setSource,
-                        listData: destinationsData,
-                      )
-                    : (source != null && destination != null)
-                        ? (route == null)
-                            ? RouteSelector(
-                                source: source,
-                                destination: destination,
-                                setRoute: setRoute)
-                            : SelectedRoute(
-                                route: route!.name, setRoute: setRoute)
-                        : Container())),
-            // TODO: SHOW LOCATION PERMISSION MODAL HERE
-          ],
-        ),
+                  FractionallySizedBox(
+                      heightFactor: 0.4,
+                      child: ((source == null)
+                          ? PickUpComponent(
+                              source: source,
+                              setSource: setSource,
+                              listData: destinationsData,
+                              currentPosition: currentPosition,
+                              isLoading: !snapshot.hasData,
+                            )
+                          : (source != null && destination != null)
+                              ? (route == null)
+                                  ? RouteSelector(
+                                      source: source,
+                                      destination: destination,
+                                      setRoute: setRoute)
+                                  : SelectedRoute(
+                                      route: route!.name, setRoute: setRoute)
+                              : Container())),
+                  // TODO: SHOW LOCATION PERMISSION MODAL HERE
+                ],
+              );
+            }),
       ),
     );
   }
