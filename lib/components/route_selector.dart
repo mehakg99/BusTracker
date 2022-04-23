@@ -12,7 +12,7 @@ const LocationSettings locationSettings = LocationSettings(
 );
 
 class RouteSelector extends StatefulWidget {
-  final void Function() setRoute;
+  final void Function(RouteModal) setRoute;
   final Location? source;
   final Location? destination;
   const RouteSelector({
@@ -44,7 +44,6 @@ class _RouteSelectorState extends State<RouteSelector> {
     //       querySnapshot.docs.map((doc) => RouteModal.fromDoc(doc)).toList();
     //   print(routesData);
     // });
-    print('routes 1');
     List lists = [widget.source!.routes, widget.destination!.routes];
 
     List commonElements = lists
@@ -54,12 +53,12 @@ class _RouteSelectorState extends State<RouteSelector> {
         .map<Future>((docReference) => docReference.get())
         .toList();
     List dataFinal = await Future.wait(futures);
-    print('routes 2');
 
     setState(() {
-      routesData = dataFinal.map((snapshot) => snapshot.data()).toList();
-      print('routes 3');
-      print(routesData);
+      routesData = dataFinal.map((snapshot) {
+        int index = dataFinal.indexOf(snapshot);
+        return {...snapshot.data(), "id": commonElements[index]};
+      }).toList();
     });
   }
 
@@ -107,7 +106,7 @@ class _RouteSelectorState extends State<RouteSelector> {
                               ),
                             ]),
                             onTap: () {
-                              widget.setRoute();
+                              widget.setRoute(RouteModal.fromDoc(route));
                             },
                           ),
                         ))

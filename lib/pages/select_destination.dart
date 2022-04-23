@@ -4,8 +4,10 @@ import 'package:bus_tracker/components/floating_input_field.dart';
 import 'package:bus_tracker/components/map_v2.dart';
 import 'package:bus_tracker/components/pickup_component.dart';
 import 'package:bus_tracker/components/route_selector.dart';
+import 'package:bus_tracker/components/selected_route.dart';
 import 'package:bus_tracker/components/selected_source.dart';
 import 'package:bus_tracker/models/Location.dart';
+import 'package:bus_tracker/models/Route.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -25,9 +27,6 @@ class SelectDestination extends StatefulWidget {
 class _SelectDestinationState extends State<SelectDestination> {
   List<Location> destinationsData = [];
 
-  setRoute() {
-    //  TODO: set route here
-  }
   getDestinations() async {
     CollectionReference busStops =
         FirebaseFirestore.instance.collection("/busStops");
@@ -46,11 +45,21 @@ class _SelectDestinationState extends State<SelectDestination> {
   }
 
   Location? destination, source;
+  RouteModal? route;
   bool locationPermissionProvided = true;
   Stream<Position>? positionStream;
+  setRoute(RouteModal? routeParam) {
+    setState(() {
+      print('routeParam');
+      print(routeParam);
+      route = routeParam;
+    });
+    //  TODO: set route here
+  }
 
   void setDestination(Location? location) {
     setState(() {
+      route = null;
       if (location != null) {
         destination = location;
       } else {
@@ -61,6 +70,7 @@ class _SelectDestinationState extends State<SelectDestination> {
 
   void setSource(Location? location) {
     setState(() {
+      route = null;
       if (location != null) {
         source = location;
       } else {
@@ -128,13 +138,14 @@ class _SelectDestinationState extends State<SelectDestination> {
           alignment: Alignment.bottomCenter,
           children: [
             Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.max,
               children: [
                 Expanded(
                   child: Stack(
                     children: [
                       MapComponentV2(
+                        route: route,
                         destination: destination,
                         source: source,
                         positionStream: positionStream,
@@ -144,7 +155,7 @@ class _SelectDestinationState extends State<SelectDestination> {
                               setSource: setSource,
                               source: source!.name,
                             )
-                          : Text('hi'),
+                          : Container(),
                       Padding(
                           padding: const EdgeInsets.symmetric(
                               vertical: 20, horizontal: 10),
@@ -169,10 +180,13 @@ class _SelectDestinationState extends State<SelectDestination> {
                         listData: destinationsData,
                       )
                     : (source != null && destination != null)
-                        ? RouteSelector(
-                            source: source,
-                            destination: destination,
-                            setRoute: setRoute)
+                        ? (route == null)
+                            ? RouteSelector(
+                                source: source,
+                                destination: destination,
+                                setRoute: setRoute)
+                            : SelectedRoute(
+                                route: route!.name, setRoute: setRoute)
                         : Container())),
             // TODO: SHOW LOCATION PERMISSION MODAL HERE
           ],
