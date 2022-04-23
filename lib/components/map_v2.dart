@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:bus_tracker/models/Location.dart';
 import 'package:bus_tracker/models/Route.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -28,6 +31,15 @@ class MapComponentV2 extends StatefulWidget {
 
 class _MapComponentV2State extends State<MapComponentV2> {
   final Completer<GoogleMapController> _controller = Completer();
+  final Set<Polyline> _polyline = {};
+  PolylinePoints polylinePoints = PolylinePoints();
+  List<LatLng> polylineCoordinates = [];
+  Future<PolylineResult> getRouteFromWayPoints() {
+    return polylinePoints.getRouteBetweenCoordinates(
+        'test',
+        PointLatLng(widget.source!.lat, widget.source!.lng),
+        PointLatLng(widget.destination!.lat, widget.destination!.lng));
+  }
 
   Set<Marker> getMarkers(
       Position? position, AsyncSnapshot<QuerySnapshot>? busSnapshot) {
@@ -75,6 +87,45 @@ class _MapComponentV2State extends State<MapComponentV2> {
       });
     }
 
+    if (busSnapshot != null) {
+      if (widget.route != null) {
+        print('polylines promise');
+        Future<PolylineResult> resultFuture = getRouteFromWayPoints();
+        resultFuture.then((PolylineResult result) {
+          //TODO: update this
+          print('polylines');
+          print(result.points);
+          // if (result.isNotEmpty)
+          //   {
+          //     // loop through all PointLatLng points and convert them
+          //     // to a list of LatLng, required by the Polyline
+          //     result.forEach((PointLatLng point) {
+          //       polylineCoordinates
+          //           .add(LatLng(point.latitude, point.longitude));
+          //     })
+          //   }
+        });
+        print('data');
+        List<Marker> busLocations = [];
+
+        busSnapshot.data!.docs.forEach((DocumentSnapshot document) {
+          dynamic data = document.data();
+          print(data);
+          double lat = data['lat'];
+          double lng = data['lng'];
+          busLocations.add(Marker(
+            markerId: MarkerId('bus${data['number']}'),
+            position: LatLng(lat, lng),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueGreen),
+          ));
+        });
+        // markers.clear();
+        print('adding markers');
+        markers.addAll(busLocations);
+        print(markers);
+      }
+    }
     return markers;
   }
 
@@ -101,10 +152,21 @@ class _MapComponentV2State extends State<MapComponentV2> {
       //     cameraPosition = position;
       //   });
       // },
+      polylines: _polyline,
       mapType: MapType.normal,
       initialCameraPosition: getCameraPosition(currentPosition),
       onMapCreated: (GoogleMapController controller) {
         _controller.complete(controller);
+        setState(() {
+          _polyline.add(Polyline(
+            polylineId: PolylineId('line1'),
+            visible: true,
+            //latlng is List<LatLng>
+            points: polylineCoordinates,
+            width: 2,
+            color: Colors.blue,
+          ));
+        });
       },
       markers: (busSnapshot.connectionState != ConnectionState.waiting)
           ? getMarkers(currentPosition, busSnapshot)
@@ -117,7 +179,7 @@ class _MapComponentV2State extends State<MapComponentV2> {
     return SizedBox(
       child: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('routes')
+            .collection('buses')
             .where('route',
                 isEqualTo: (widget.route != null) ? (widget.route!.id) : (null))
             .snapshots(),
