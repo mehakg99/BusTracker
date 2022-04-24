@@ -34,6 +34,11 @@ class _RouteSelectorState extends State<RouteSelector> {
     getRoutes();
   }
 
+  bool isValidRoute(RouteModal route) {
+    print(route);
+    return false;
+  }
+
   getRoutes() async {
     // CollectionReference busStops =
     //     FirebaseFirestore.instance.collection("/routes");
@@ -55,10 +60,13 @@ class _RouteSelectorState extends State<RouteSelector> {
     List dataFinal = await Future.wait(futures);
 
     setState(() {
-      routesData = dataFinal.map((snapshot) {
+      List routesDataTemp = dataFinal.map((snapshot) {
         int index = dataFinal.indexOf(snapshot);
-        return {...snapshot.data(), "id": commonElements[index]};
+        return RouteModal.fromDoc(
+            {...snapshot.data(), "id": commonElements[index]});
       }).toList();
+      routesData =
+          routesDataTemp.where((route) => isValidRoute(route)).toList();
     });
   }
 
@@ -101,12 +109,12 @@ class _RouteSelectorState extends State<RouteSelector> {
                             ),
                             title: Row(children: [
                               Text(
-                                route['name'],
+                                route.name,
                                 style: TextStyle(fontSize: 16),
                               ),
                             ]),
                             onTap: () {
-                              widget.setRoute(RouteModal.fromDoc(route));
+                              widget.setRoute(route);
                             },
                           ),
                         ))

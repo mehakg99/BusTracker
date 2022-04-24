@@ -32,11 +32,23 @@ class _MapComponentV2State extends State<MapComponentV2> {
   final Set<Polyline> _polyline = {};
   PolylinePoints polylinePoints = PolylinePoints();
   List<LatLng> polylineCoordinates = [];
-  Future<PolylineResult> getRouteFromWayPoints() {
+  Future<PolylineResult> getRouteFromWayPoints() async {
+    //TODO: update api key
+    PointLatLng source = PointLatLng(widget.source!.lat, widget.source!.lng);
+    PointLatLng destination =
+        PointLatLng(widget.destination!.lat, widget.destination!.lng);
+    List<PolylineWayPoint> busStopWayPoints = [];
+    for (DocumentReference element in widget.route!.stops) {
+      dynamic data = await element.get();
+      Location busStop = Location.fromDoc({...data, 'id': element});
+      PolylineWayPoint wayPoint =
+          PolylineWayPoint(location: '${busStop.lat},${busStop.lng}');
+      busStopWayPoints.add(wayPoint);
+    }
+
     return polylinePoints.getRouteBetweenCoordinates(
-        'test',
-        PointLatLng(widget.source!.lat, widget.source!.lng),
-        PointLatLng(widget.destination!.lat, widget.destination!.lng));
+        'AIzaSyB4h9nOc-5EycIt0XR1g6ZGhyF3Ne8116M', source, destination,
+        wayPoints: busStopWayPoints);
   }
 
   Set<Marker> getMarkers(
