@@ -13,11 +13,15 @@ class PickUpComponent extends StatefulWidget {
   final void Function(Location?) setSource;
   final Location? source;
   final List<Location> listData;
+  final Position? currentPosition;
+  final bool isLoading;
   const PickUpComponent({
     Key? key,
     required this.setSource,
     required this.source,
     required this.listData,
+    required this.currentPosition,
+    required this.isLoading,
   }) : super(key: key);
 
   @override
@@ -30,29 +34,17 @@ class _PickUpComponentState extends State<PickUpComponent> {
     super.initState();
   }
 
-  void handleTileTap(String title, String subtitle) {}
-
-  List<ListTileCustom> getPickupLocations(Position? position) {
+  List getPickupLocations() {
     List distanceList = widget.listData
         .map((Location busStop) => {
               "busStop": busStop,
-              "distance": busStop.distanceFromPosition(position!)
+              "distance": busStop.distanceFromPosition(widget.currentPosition!)
             })
         .toList();
     distanceList.sort((a, b) => a["distance"].compareTo(b["distance"]));
-    return distanceList.sublist(0, 2).map((busStop) {
-      return ListTileCustom(
-        title: busStop["busStop"].name,
-        subtitle: busStop["distance"].toString(),
-        icon: const Icon(
-          Icons.home,
-          color: Colors.blue,
-        ),
-        onTap: () {
-          widget.setSource(busStop["busStop"]);
-        },
-      );
-    }).toList();
+    return (distanceList.length > 3)
+        ? distanceList.sublist(0, 2)
+        : distanceList;
   }
 
   @override
@@ -81,29 +73,30 @@ class _PickUpComponentState extends State<PickUpComponent> {
               ],
             ),
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: StreamBuilder<Position>(
-                stream: Geolocator.getPositionStream(
-                    locationSettings: locationSettings),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return Column(
-                      children: getPickupLocations(snapshot.data),
-                    );
-                  } else {
-                    print(snapshot);
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 48),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-                },
-              ),
-            ),
-          ),
+          widget.isLoading
+              ? const Padding(
+                  padding: EdgeInsets.only(top: 20),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: getPickupLocations().map((busStop) {
+                        return ListTileCustom(
+                          title: busStop["busStop"].name,
+                          subtitle: busStop["distance"].toString(),
+                          icon: const Icon(
+                            Icons.home,
+                            color: Colors.blue,
+                          ),
+                          onTap: () {
+                            widget.setSource(busStop["busStop"]);
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
         ],
       ),
       decoration: BoxDecoration(

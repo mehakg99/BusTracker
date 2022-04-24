@@ -13,14 +13,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapComponentV2 extends StatefulWidget {
   final Location? destination, source;
-  final Stream<Position>? positionStream;
   final RouteModal? route;
+  final Position? currentPosition;
+  final bool isLoading;
   const MapComponentV2({
     Key? key,
     required this.destination,
     required this.source,
     required this.route,
-    this.positionStream,
+    required this.currentPosition,
+    required this.isLoading,
   }) : super(key: key);
 
   @override
@@ -155,7 +157,7 @@ class _MapComponentV2State extends State<MapComponentV2> {
   }
 
   GoogleMap googleMapBuilder(
-      snapshot, AsyncSnapshot<QuerySnapshot> busSnapshot) {
+      currentPosition, AsyncSnapshot<QuerySnapshot> busSnapshot) {
     return GoogleMap(
       // onCameraMove: (CameraPosition position) {
       //   setState(() {
@@ -164,7 +166,7 @@ class _MapComponentV2State extends State<MapComponentV2> {
       // },
       polylines: _polyline,
       mapType: MapType.normal,
-      initialCameraPosition: getCameraPosition(snapshot.data),
+      initialCameraPosition: getCameraPosition(currentPosition),
       onMapCreated: (GoogleMapController controller) {
         _controller.complete(controller);
         setState(() {
@@ -179,34 +181,25 @@ class _MapComponentV2State extends State<MapComponentV2> {
         });
       },
       markers: (busSnapshot.connectionState != ConnectionState.waiting)
-          ? getMarkers(snapshot.data, busSnapshot)
-          : getMarkers(snapshot.data, null),
+          ? getMarkers(currentPosition, busSnapshot)
+          : getMarkers(currentPosition, null),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      child: StreamBuilder<Position>(
-          stream: widget.positionStream,
-          builder: (context, snapshot) {
-            print('widget');
-            if (widget.route != null) {
-              print(widget.route!.id);
-            }
-            return StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('buses')
-                  .where('route',
-                      isEqualTo:
-                          (widget.route != null) ? (widget.route!.id) : (null))
-                  .snapshots(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> busSnapshot) {
-                return googleMapBuilder(snapshot, busSnapshot);
-              },
-            );
-          }),
+      child: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('buses')
+            .where('route',
+                isEqualTo: (widget.route != null) ? (widget.route!.id) : (null))
+            .snapshots(),
+        builder:
+            (BuildContext context, AsyncSnapshot<QuerySnapshot> busSnapshot) {
+          return googleMapBuilder(widget.currentPosition, busSnapshot);
+        },
+      ),
       width: double.infinity,
       height: double.infinity,
     );
