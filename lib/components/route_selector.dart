@@ -35,7 +35,13 @@ class _RouteSelectorState extends State<RouteSelector> {
   }
 
   bool isValidRoute(RouteModal route) {
-    print(route);
+    int indSource = route.stops.indexOf(widget.source!.id);
+    while (indSource < route.stops.length) {
+      if (route.stops[indSource] == widget.destination!.id) {
+        return true;
+      }
+      indSource++;
+    }
     return false;
   }
 
@@ -65,6 +71,7 @@ class _RouteSelectorState extends State<RouteSelector> {
         return RouteModal.fromDoc(
             {...snapshot.data(), "id": commonElements[index]});
       }).toList();
+      print('reached here routes');
       routesData =
           routesDataTemp.where((route) => isValidRoute(route)).toList();
     });

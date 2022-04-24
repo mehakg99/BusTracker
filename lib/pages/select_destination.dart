@@ -32,10 +32,14 @@ class _SelectDestinationState extends State<SelectDestination> {
         FirebaseFirestore.instance.collection("busStops");
 
     QuerySnapshot querySnapshot = await busStops.get();
-
+    print(querySnapshot);
     setState(() {
-      destinationsData =
-          querySnapshot.docs.map((doc) => Location.fromDoc(doc)).toList();
+      destinationsData = querySnapshot.docs.map((doc) {
+        dynamic data = doc;
+        DocumentReference<Map<String, dynamic>> ref =
+            FirebaseFirestore.instance.doc('busStops/${doc.id}');
+        return Location.fromDoc({...(data.data()), "id": ref});
+      }).toList();
     });
   }
 

@@ -40,9 +40,18 @@ class _MapComponentV2State extends State<MapComponentV2> {
     PointLatLng destination =
         PointLatLng(widget.destination!.lat, widget.destination!.lng);
     List<PolylineWayPoint> busStopWayPoints = [];
+    int destinationInd = widget.route!.stops.indexOf(widget.destination!.id);
+    int sourceInd = widget.route!.stops.indexOf(widget.source!.id);
     for (DocumentReference element in widget.route!.stops) {
+      int elementInd = widget.route!.stops.indexOf(element);
+      if (elementInd <= sourceInd) {
+        continue;
+      }
+      if (elementInd >= destinationInd) {
+        break;
+      }
       dynamic data = await element.get();
-      Location busStop = Location.fromDoc({...data, 'id': element});
+      Location busStop = Location.fromDoc({...data.data(), 'id': element});
       PolylineWayPoint wayPoint =
           PolylineWayPoint(location: '${busStop.lat},${busStop.lng}');
       busStopWayPoints.add(wayPoint);
