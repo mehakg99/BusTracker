@@ -8,9 +8,12 @@ import 'package:bus_tracker/components/selected_route.dart';
 import 'package:bus_tracker/components/selected_source.dart';
 import 'package:bus_tracker/models/Location.dart';
 import 'package:bus_tracker/models/Route.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 const LocationSettings locationSettings = LocationSettings(
   accuracy: LocationAccuracy.high,
@@ -52,20 +55,72 @@ class _SelectDestinationState extends State<SelectDestination> {
 
   Location? destination, source;
   RouteModal? route;
+  List<LatLng> polylineCoordinates = [];
+  PolylinePoints polylinePoints = PolylinePoints();
   bool locationPermissionProvided = true;
   Stream<Position>? positionStream;
+
+  Future<PolylineResult> getRouteFromWayPoints() async {
+    PointLatLng sourceObj = PointLatLng(source!.lat, source!.lng);
+    PointLatLng destinationObj =
+        PointLatLng(destination!.lat, destination!.lng);
+    List<PolylineWayPoint> busStopWayPoints = [];
+    int destinationInd = route!.stops.indexOf(destination!.id);
+    int sourceInd = route!.stops.indexOf(source!.id);
+    for (DocumentReference element in route!.stops) {
+      int elementInd = route!.stops.indexOf(element);
+      if (elementInd <= sourceInd) {
+        continue;
+      }
+      if (elementInd >= destinationInd) {
+        break;
+      }
+      dynamic data = await element.get();
+      Location busStop = Location.fromDoc({...data.data(), 'id': element});
+      PolylineWayPoint wayPoint =
+          PolylineWayPoint(location: '${busStop.lat},${busStop.lng}');
+      busStopWayPoints.add(wayPoint);
+    }
+
+    return polylinePoints.getRouteBetweenCoordinates(
+        dotenv.env['GOOGLE_API_KEY']!, sourceObj, destinationObj,
+        wayPoints: busStopWayPoints);
+  }
+
+  void setPolylineCoordinates() {
+    print('polylines promise');
+    Future<PolylineResult> resultFuture = getRouteFromWayPoints();
+    resultFuture.then((PolylineResult result) {
+      print('polylines');
+      print(result.points);
+      if (result.points.isNotEmpty) {
+        setState(() {
+          result.points.forEach((PointLatLng point) {
+            polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+          });
+        });
+      }
+    });
+    print('data');
+  }
+
   setRoute(RouteModal? routeParam) {
     setState(() {
-      print('routeParam');
-      print(routeParam);
       route = routeParam;
     });
+    if (route != null) {
+      setPolylineCoordinates();
+    } else {
+      setState(() {
+        polylineCoordinates = [];
+      });
+    }
     //  TODO: set route here
   }
 
   void setDestination(Location? location) {
+    setRoute(null);
     setState(() {
-      route = null;
       if (location != null) {
         destination = location;
       } else {
@@ -75,8 +130,8 @@ class _SelectDestinationState extends State<SelectDestination> {
   }
 
   void setSource(Location? location) {
+    setRoute(null);
     setState(() {
-      route = null;
       if (location != null) {
         source = location;
       } else {
@@ -165,6 +220,7 @@ class _SelectDestinationState extends State<SelectDestination> {
                               source: source,
                               currentPosition: currentPosition,
                               isLoading: !snapshot.hasData,
+                              polylineCoordinates: polylineCoordinates,
                             ),
                             (source != null)
                                 ? SelectedSource(
