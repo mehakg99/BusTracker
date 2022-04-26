@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:bus_tracker/models/Location.dart';
 import 'package:bus_tracker/models/Route.dart';
@@ -30,6 +31,8 @@ class MapComponentV2 extends StatefulWidget {
 }
 
 class _MapComponentV2State extends State<MapComponentV2> {
+  BitmapDescriptor busIconNonAC = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor busIconAC = BitmapDescriptor.defaultMarker;
   final Completer<GoogleMapController> _controller = Completer();
   final Set<Polyline> _polyline = {};
   PolylinePoints polylinePoints = PolylinePoints();
@@ -62,8 +65,34 @@ class _MapComponentV2State extends State<MapComponentV2> {
         wayPoints: busStopWayPoints);
   }
 
+  generateMarkerFromIcon(iconData, Color color) async {
+    final pictureRecorder = PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
+    final iconStr = String.fromCharCode(iconData.codePoint);
+    textPainter.text = TextSpan(
+        text: iconStr,
+        style: TextStyle(
+          letterSpacing: 0.0,
+          fontSize: 100.0,
+          fontFamily: iconData.fontFamily,
+          color: color,
+        ));
+    textPainter.layout();
+    textPainter.paint(canvas, Offset(0.0, 0.0));
+    final picture = pictureRecorder.endRecording();
+    final image = await picture.toImage(100, 100);
+    final bytes = await image.toByteData(format: ImageByteFormat.png);
+    final bitmapDescriptor =
+        BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
+    return bitmapDescriptor;
+  }
+
   Set<Marker> getMarkers(
-      Position? position, AsyncSnapshot<QuerySnapshot>? busSnapshot) {
+      Position? position,
+      AsyncSnapshot<QuerySnapshot>? busSnapshot,
+      BitmapDescriptor busIconNonAC,
+      BitmapDescriptor busIconAC) {
     Set<Marker> markers = position == null
         ? {}
         : {
@@ -137,8 +166,7 @@ class _MapComponentV2State extends State<MapComponentV2> {
           busLocations.add(Marker(
             markerId: MarkerId('bus${data['number']}'),
             position: LatLng(lat, lng),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueGreen),
+            icon: data['type'] == "AC" ? busIconAC : busIconNonAC,
           ));
         });
         // markers.clear();
@@ -166,7 +194,10 @@ class _MapComponentV2State extends State<MapComponentV2> {
   }
 
   GoogleMap googleMapBuilder(
-      currentPosition, AsyncSnapshot<QuerySnapshot> busSnapshot) {
+      currentPosition,
+      AsyncSnapshot<QuerySnapshot> busSnapshot,
+      BitmapDescriptor busIconNonAC,
+      busIconAC) {
     return GoogleMap(
       // onCameraMove: (CameraPosition position) {
       //   setState(() {
@@ -190,9 +221,28 @@ class _MapComponentV2State extends State<MapComponentV2> {
         });
       },
       markers: (busSnapshot.connectionState != ConnectionState.waiting)
-          ? getMarkers(currentPosition, busSnapshot)
-          : getMarkers(currentPosition, null),
+          ? getMarkers(currentPosition, busSnapshot, busIconNonAC, busIconAC)
+          : getMarkers(currentPosition, null, busIconNonAC, busIconAC),
     );
+  }
+
+  getBusIcon() async {
+    print('updating busIcon');
+    BitmapDescriptor busIconNewNonAC =
+        await generateMarkerFromIcon(Icons.directions_bus, Colors.green);
+    BitmapDescriptor busIconNewAC =
+        await generateMarkerFromIcon(Icons.directions_bus, Colors.red);
+    setState(() {
+      busIconNonAC = busIconNewNonAC;
+      busIconAC = busIconNewAC;
+      print('updated busIcon');
+    });
+  }
+
+  @override
+  initState() {
+    getBusIcon();
+    super.initState();
   }
 
   @override
@@ -206,7 +256,8 @@ class _MapComponentV2State extends State<MapComponentV2> {
             .snapshots(),
         builder:
             (BuildContext context, AsyncSnapshot<QuerySnapshot> busSnapshot) {
-          return googleMapBuilder(widget.currentPosition, busSnapshot);
+          return googleMapBuilder(
+              widget.currentPosition, busSnapshot, busIconNonAC, busIconAC);
         },
       ),
       width: double.infinity,
