@@ -12,11 +12,13 @@ const LocationSettings locationSettings = LocationSettings(
 class PickUpComponent extends StatefulWidget {
   final void Function(Location?) setSource;
   final Location? source;
+  final Location? destination;
   final List<Location> listData;
   final Position? currentPosition;
   final bool isLoading;
   const PickUpComponent({
     Key? key,
+    required this.destination,
     required this.setSource,
     required this.source,
     required this.listData,
@@ -34,13 +36,27 @@ class _PickUpComponentState extends State<PickUpComponent> {
     super.initState();
   }
 
-  List getPickupLocations() {
-    List distanceList = widget.listData
-        .map((Location busStop) => {
-              "busStop": busStop,
-              "distance": busStop.distanceFromPosition(widget.currentPosition!)
-            })
-        .toList();
+  List getPickupLocations(Location? destination) {
+    List distanceList;
+    if (destination != null) {
+      distanceList = widget.listData
+          .where((element) => element.name != destination.name)
+          .map((Location busStop) => {
+                "busStop": busStop,
+                "distance":
+                    busStop.distanceFromPosition(widget.currentPosition!)
+              })
+          .toList();
+    } else {
+      distanceList = widget.listData
+          .map((Location busStop) => {
+                "busStop": busStop,
+                "distance":
+                    busStop.distanceFromPosition(widget.currentPosition!)
+              })
+          .toList();
+    }
+
     distanceList.sort((a, b) => a["distance"].compareTo(b["distance"]));
     return (distanceList.length > 3)
         ? distanceList.sublist(0, 2)
@@ -81,7 +97,8 @@ class _PickUpComponentState extends State<PickUpComponent> {
               : Expanded(
                   child: SingleChildScrollView(
                     child: Column(
-                      children: getPickupLocations().map((busStop) {
+                      children:
+                          getPickupLocations(widget.destination).map((busStop) {
                         return ListTileCustom(
                           title: busStop["busStop"].name,
                           subtitle: busStop["distance"].toString(),

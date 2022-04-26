@@ -23,7 +23,18 @@ class FloatingInputField extends StatefulWidget {
 }
 
 class _FloatingInputFieldState extends State<FloatingInputField> {
-  getStops() {
+  getStops(Location? source) {
+    if (source != null) {
+      return widget.listData
+          .where((element) => element.name != source.name)
+          .map((busStop) {
+        return DropdownMenuItem(
+            child: Text(
+              busStop.name,
+            ),
+            value: busStop.name);
+      }).toList();
+    }
     return widget.listData.map((busStop) {
       return DropdownMenuItem(
           child: Text(
@@ -38,7 +49,7 @@ class _FloatingInputFieldState extends State<FloatingInputField> {
     return Padding(
       padding: const EdgeInsets.all(10),
       child: SearchChoices.single(
-        items: getStops(),
+        items: getStops(widget.source),
         value: widget.destination?.name,
         hint: const SizedBox(
           height: 48,

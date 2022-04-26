@@ -191,6 +191,7 @@ class _SelectDestinationState extends State<SelectDestination> {
                       heightFactor: 0.4,
                       child: ((source == null)
                           ? PickUpComponent(
+                              destination: destination,
                               source: source,
                               setSource: setSource,
                               listData: destinationsData,
