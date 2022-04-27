@@ -1,3 +1,4 @@
+import 'package:bus_tracker/components/contact_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bus_tracker/components/bottom_navbar.dart';
@@ -22,42 +23,13 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
     _getContacts();
   }
 
-  List<Widget> displayContacts() {
-    List<Widget> list = userDets
-        .map((item) => Padding(
-              padding: EdgeInsets.only(bottom: 5),
-              child: Card(
-                child: ListTile(
-                  leading: const Icon(
-                    Icons.person,
-                    size: 35,
-                  ),
-                  title: Text(
-                    item["name"],
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  subtitle: Text(
-                    item["contact"],
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  trailing: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          userDets.removeWhere((element) =>
-                              element["name"] == item["name"] &&
-                              element["contact"] == item["contact"]);
-                        });
-                        _removeContact(item["name"]);
-                      },
-                      child: const Icon(
-                        Icons.delete,
-                        color: Colors.red,
-                      )),
-                ),
-              ),
-            ))
-        .toList();
-    return list;
+  void deleteContactHandler(item) {
+    setState(() {
+      userDets.removeWhere((element) =>
+          element["name"] == item["name"] &&
+          element["contact"] == item["contact"]);
+    });
+    _removeContact(item["name"]);
   }
 
   _removeContact(name) async {
@@ -183,9 +155,8 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
                   ),
                 )
               : SingleChildScrollView(
-                  child: Column(
-                    children: displayContacts(),
-                  ),
+                  child: ContactTile(
+                      userDets: userDets, deleteContactHandler: deleteContactHandler),
                 ),
         ),
         floatingActionButton: userDets.length == 5
