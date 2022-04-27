@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bus_tracker/components/bottom_navbar.dart';
 
 class EmergencyContacts extends StatefulWidget {
   const EmergencyContacts({Key? key}) : super(key: key);
@@ -14,6 +15,12 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
   String name = "";
   String contact = "";
   List userDets = [];
+
+  @override
+  initState() {
+    super.initState();
+    _getContacts();
+  }
 
   List<Widget> displayContacts() {
     List<Widget> list = userDets
@@ -66,10 +73,13 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
   _getContacts() async {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys();
-    final prefsMap = Map<String, int?>();
+    List savedUserDets = [];
     for (String key in keys) {
-      prefsMap[key] = prefs.getInt(key);
+      savedUserDets.add({'name': key, 'contact': prefs.getInt(key).toString()});
     }
+    setState(() {
+      userDets = savedUserDets;
+    });
   }
 
   void submitHandler() {
@@ -152,6 +162,7 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        bottomNavigationBar: const BottomNavbar(selectedIndex: 1),
         appBar: AppBar(
           title: const Text('Emergency Contacts'),
         ),

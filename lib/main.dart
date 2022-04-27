@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:bus_tracker/pages/select_destination.dart';
+import 'package:bus_tracker/pages/emergency_contacts.dart';
 
 import 'bus_tracker_routes.dart';
 import 'package:flutter/material.dart';
 import 'splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:page_transition/page_transition.dart';
 
 import 'firebase_options.dart';
 
@@ -62,8 +64,18 @@ class _MispBusTrackerState extends State<MispBusTracker> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/second':
+            return PageTransition(
+                child: getCurrentComponent(), type: PageTransitionType.scale);
+            break;
+          default:
+            return null;
+        }
+      },
       routes: {
-        '/routes': (context) => const BusTrackerRoutes(),
+        '/routes': (context) => const SelectDestination(),
       },
       home: getCurrentComponent(),
     );

@@ -6,6 +6,7 @@ import 'package:bus_tracker/components/pickup_component.dart';
 import 'package:bus_tracker/components/route_selector.dart';
 import 'package:bus_tracker/components/selected_route.dart';
 import 'package:bus_tracker/components/selected_source.dart';
+import 'package:bus_tracker/components/bottom_navbar.dart';
 import 'package:bus_tracker/models/Location.dart';
 import 'package:bus_tracker/models/Route.dart';
 import 'package:geolocator/geolocator.dart';
@@ -136,6 +137,7 @@ class _SelectDestinationState extends State<SelectDestination> {
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: false,
+        bottomNavigationBar: const BottomNavbar(selectedIndex: 0),
         body: StreamBuilder<Position>(
             stream: positionStream,
             builder: (context, snapshot) {
