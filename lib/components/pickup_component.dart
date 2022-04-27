@@ -52,7 +52,7 @@ class _PickUpComponentState extends State<PickUpComponent> {
           .map((Location busStop) => {
                 "busStop": busStop,
                 "distance":
-                    busStop.distanceFromPosition(widget.currentPosition!)
+                    '${busStop.distanceFromPosition(widget.currentPosition!).toStringAsFixed(2)} km'
               })
           .toList();
     }

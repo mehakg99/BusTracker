@@ -31,9 +31,13 @@ class MapComponentV2 extends StatefulWidget {
 class _MapComponentV2State extends State<MapComponentV2> {
   BitmapDescriptor busIconNonAC = BitmapDescriptor.defaultMarker;
   BitmapDescriptor busIconAC = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor busStopIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor busStopDestinationIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor wayPointIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor userIcon = BitmapDescriptor.defaultMarker;
   final Completer<GoogleMapController> _controller = Completer();
 
-  generateMarkerFromIcon(iconData, Color color) async {
+  generateMarkerFromIcon(iconData, Color color, double size) async {
     final pictureRecorder = PictureRecorder();
     final canvas = Canvas(pictureRecorder);
     final textPainter = TextPainter(textDirection: TextDirection.ltr);
@@ -42,14 +46,14 @@ class _MapComponentV2State extends State<MapComponentV2> {
         text: iconStr,
         style: TextStyle(
           letterSpacing: 0.0,
-          fontSize: 100.0,
+          fontSize: size,
           fontFamily: iconData.fontFamily,
           color: color,
         ));
     textPainter.layout();
     textPainter.paint(canvas, Offset(0.0, 0.0));
     final picture = pictureRecorder.endRecording();
-    final image = await picture.toImage(100, 100);
+    final image = await picture.toImage(size.toInt(), size.toInt());
     final bytes = await image.toByteData(format: ImageByteFormat.png);
     final bitmapDescriptor =
         BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
@@ -57,21 +61,26 @@ class _MapComponentV2State extends State<MapComponentV2> {
   }
 
   Set<Marker> getMarkers(
-      Position? position,
-      AsyncSnapshot<QuerySnapshot>? busSnapshot,
-      BitmapDescriptor busIconNonAC,
-      BitmapDescriptor busIconAC) {
+    Position? position,
+    AsyncSnapshot<QuerySnapshot>? busSnapshot,
+    BitmapDescriptor busIconNonAC,
+    BitmapDescriptor busIconAC,
+    BitmapDescriptor busStopIcon,
+    BitmapDescriptor wayPointIcon,
+    BitmapDescriptor busStopDestinationIcon,
+    BitmapDescriptor userIcon,
+  ) {
     Set<Marker> markers = position == null
         ? {}
         : {
             Marker(
               markerId: const MarkerId("currentLocation"),
               position: LatLng(position.latitude, position.longitude),
-              // TODO: change icon of current location
               infoWindow: const InfoWindow(
                 title: "Current Location",
                 snippet: "Your current location",
               ),
+              icon: userIcon,
             ),
           };
     if (widget.destination != null && widget.source != null) {
@@ -79,12 +88,12 @@ class _MapComponentV2State extends State<MapComponentV2> {
         Marker(
           markerId: const MarkerId('destination'),
           position: LatLng(widget.destination!.lat, widget.destination!.lng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          icon: busStopDestinationIcon,
         ),
         Marker(
           markerId: const MarkerId('source'),
           position: LatLng(widget.source!.lat, widget.source!.lng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          icon: busStopIcon,
         ),
       });
     } else if (widget.destination != null) {
@@ -92,7 +101,7 @@ class _MapComponentV2State extends State<MapComponentV2> {
         Marker(
           markerId: const MarkerId('destination'),
           position: LatLng(widget.destination!.lat, widget.destination!.lng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          icon: busStopDestinationIcon,
         ),
       });
     } else if (widget.source != null) {
@@ -100,7 +109,7 @@ class _MapComponentV2State extends State<MapComponentV2> {
         Marker(
           markerId: const MarkerId('source'),
           position: LatLng(widget.source!.lat, widget.source!.lng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          icon: busStopIcon,
         ),
       });
     }
@@ -142,10 +151,15 @@ class _MapComponentV2State extends State<MapComponentV2> {
   }
 
   GoogleMap googleMapBuilder(
-      currentPosition,
-      AsyncSnapshot<QuerySnapshot> busSnapshot,
-      BitmapDescriptor busIconNonAC,
-      busIconAC) {
+    currentPosition,
+    AsyncSnapshot<QuerySnapshot> busSnapshot,
+    BitmapDescriptor busIconNonAC,
+    busIconAC,
+    busStopIcon,
+    wayPointIcon,
+    busStopDestinationIcon,
+    userIcon,
+  ) {
     return GoogleMap(
       // onCameraMove: (CameraPosition position) {
       //   setState(() {
@@ -168,20 +182,34 @@ class _MapComponentV2State extends State<MapComponentV2> {
         _controller.complete(controller);
       },
       markers: (busSnapshot.connectionState != ConnectionState.waiting)
-          ? getMarkers(currentPosition, busSnapshot, busIconNonAC, busIconAC)
-          : getMarkers(currentPosition, null, busIconNonAC, busIconAC),
+          ? getMarkers(currentPosition, busSnapshot, busIconNonAC, busIconAC,
+              busStopIcon, wayPointIcon, busStopDestinationIcon, userIcon)
+          : getMarkers(currentPosition, null, busIconNonAC, busIconAC,
+              busStopIcon, wayPointIcon, busStopDestinationIcon, userIcon),
     );
   }
 
   getBusIcon() async {
     print('updating busIcon');
     BitmapDescriptor busIconNewNonAC =
-        await generateMarkerFromIcon(Icons.directions_bus, Colors.green);
+        await generateMarkerFromIcon(Icons.directions_bus, Colors.green, 100.0);
     BitmapDescriptor busIconNewAC =
-        await generateMarkerFromIcon(Icons.directions_bus, Colors.red);
+        await generateMarkerFromIcon(Icons.directions_bus, Colors.red, 100.0);
+    BitmapDescriptor busStopNewSourceIcon =
+        await generateMarkerFromIcon(Icons.push_pin, Colors.red, 120.0);
+    BitmapDescriptor busStopNewDestinationIcon =
+        await generateMarkerFromIcon(Icons.push_pin, Colors.green, 120.0);
+    BitmapDescriptor wayPointNewIcon =
+        await generateMarkerFromIcon(Icons.push_pin, Colors.blue, 120.0);
+    BitmapDescriptor userIconNew =
+        await generateMarkerFromIcon(Icons.man, Colors.blue, 100.0);
     setState(() {
       busIconNonAC = busIconNewNonAC;
       busIconAC = busIconNewAC;
+      busStopIcon = busStopNewSourceIcon;
+      busStopDestinationIcon = busStopNewDestinationIcon;
+      wayPointIcon = wayPointNewIcon;
+      userIcon = userIconNew;
       print('updated busIcon');
     });
   }
@@ -204,7 +232,14 @@ class _MapComponentV2State extends State<MapComponentV2> {
         builder:
             (BuildContext context, AsyncSnapshot<QuerySnapshot> busSnapshot) {
           return googleMapBuilder(
-              widget.currentPosition, busSnapshot, busIconNonAC, busIconAC);
+              widget.currentPosition,
+              busSnapshot,
+              busIconNonAC,
+              busIconAC,
+              busStopIcon,
+              wayPointIcon,
+              busStopDestinationIcon,
+              userIcon);
         },
       ),
       width: double.infinity,
