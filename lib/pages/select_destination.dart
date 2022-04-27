@@ -29,6 +29,17 @@ class SelectDestination extends StatefulWidget {
 
 class _SelectDestinationState extends State<SelectDestination> {
   List<Location> destinationsData = [];
+  void swapStops() {
+    if (destination != null && source != null) {
+      Location tempLocation = destination!;
+      setRoute(null);
+      setDestination(null);
+      setDestination(source);
+      setSource(tempLocation);
+      print(source!.lat);
+      print(destination!.lat);
+    }
+  }
 
   getDestinations() async {
     CollectionReference busStops =
@@ -222,22 +233,67 @@ class _SelectDestinationState extends State<SelectDestination> {
                               isLoading: !snapshot.hasData,
                               polylineCoordinates: polylineCoordinates,
                             ),
-                            (source != null)
-                                ? SelectedSource(
-                                    setSource: setSource,
-                                    source: source!.name,
-                                  )
-                                : Container(),
-                            Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 20, horizontal: 10),
-                                child: FloatingInputField(
-                                  destination: destination,
-                                  source: source,
-                                  title: "Destination",
-                                  listData: destinationsData,
-                                  setDestination: setDestination,
-                                )),
+                            Row(
+                              mainAxisSize: MainAxisSize.max,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Flexible(
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: 20,
+                                            left: 10,
+                                            right: 0,
+                                            bottom: 0),
+                                        child: FloatingInputField(
+                                          destination: destination,
+                                          source: source,
+                                          title: "Destination",
+                                          listData: destinationsData,
+                                          setDestination: setDestination,
+                                        ),
+                                      ),
+                                      (source != null)
+                                          ? SelectedSource(
+                                              setSource: setSource,
+                                              source: source!.name,
+                                            )
+                                          : Container(),
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      // width: 50,
+                                      height: 200,
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          TextButton(
+                                            onPressed: (source != null &&
+                                                    destination != null)
+                                                ? swapStops
+                                                : null,
+                                            child: const Icon(
+                                              Icons.swap_vert,
+                                              size: 40,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
