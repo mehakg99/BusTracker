@@ -156,7 +156,8 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
                 )
               : SingleChildScrollView(
                   child: ContactTile(
-                      userDets: userDets, deleteContactHandler: deleteContactHandler),
+                      userDets: userDets,
+                      deleteContactHandler: deleteContactHandler),
                 ),
         ),
         floatingActionButton: userDets.length == 5
