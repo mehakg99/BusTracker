@@ -66,7 +66,7 @@ class _MispBusTrackerState extends State<MispBusTracker> {
     return MaterialApp(
       onGenerateRoute: (settings) {
         switch (settings.name) {
-          case '/second':
+          case '/p':
             return PageTransition(
                 child: getCurrentComponent(), type: PageTransitionType.scale);
             break;

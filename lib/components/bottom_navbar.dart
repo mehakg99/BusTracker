@@ -1,5 +1,6 @@
 import 'package:bus_tracker/pages/emergency_contacts.dart';
 import 'package:bus_tracker/pages/select_destination.dart';
+import 'package:bus_tracker/pages/sos_button.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:flutter/material.dart';
 
@@ -34,6 +35,12 @@ class _BottomNavbarState extends State<BottomNavbar> {
           icon: Icon(
             Icons.person,
           ),
+          label: 'Contacts',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(
+            Icons.emergency,
+          ),
           label: 'Emergency',
         ),
       ],
@@ -48,6 +55,12 @@ class _BottomNavbarState extends State<BottomNavbar> {
               PageTransition(
                   type: PageTransitionType.rightToLeft,
                   child: const EmergencyContacts()));
+        } else if (newIndex == 2) {
+          Navigator.push(
+              context,
+              PageTransition(
+                  type: PageTransitionType.rightToLeft,
+                  child: const SosButton()));
         } else {
           // Navigator.pop(context);
           Navigator.popUntil(context, (route) => route.isFirst);

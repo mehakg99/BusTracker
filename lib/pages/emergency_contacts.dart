@@ -136,7 +136,7 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
       child: Scaffold(
         bottomNavigationBar: const BottomNavbar(selectedIndex: 1),
         appBar: AppBar(
-          title: const Text('Emergency Contacts'),
+          title: const Text('Contact Details'),
         ),
         body: Padding(
           padding: const EdgeInsets.all(15),
@@ -155,9 +155,14 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
                   ),
                 )
               : SingleChildScrollView(
-                  child: ContactTile(
-                      userDets: userDets,
-                      deleteContactHandler: deleteContactHandler),
+                  child: Column(
+                      children: userDets
+                          .map<Widget>(
+                            (contactDets) => ContactTile(
+                                contactDets: contactDets,
+                                deleteContactHandler: deleteContactHandler),
+                          )
+                          .toList()),
                 ),
         ),
         floatingActionButton: userDets.length == 5
