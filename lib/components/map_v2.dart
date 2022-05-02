@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:bus_tracker/models/Location.dart';
 import 'package:bus_tracker/models/Route.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -16,6 +13,7 @@ class MapComponentV2 extends StatefulWidget {
   final RouteModal? route;
   final Position? currentPosition;
   final bool isLoading;
+  final List<LatLng> polylineCoordinates;
   const MapComponentV2({
     Key? key,
     required this.destination,
@@ -23,6 +21,7 @@ class MapComponentV2 extends StatefulWidget {
     required this.route,
     required this.currentPosition,
     required this.isLoading,
+    required this.polylineCoordinates,
   }) : super(key: key);
 
   @override
@@ -30,30 +29,58 @@ class MapComponentV2 extends StatefulWidget {
 }
 
 class _MapComponentV2State extends State<MapComponentV2> {
+  BitmapDescriptor busIconNonAC = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor busIconAC = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor busStopIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor busStopDestinationIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor wayPointIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor userIcon = BitmapDescriptor.defaultMarker;
   final Completer<GoogleMapController> _controller = Completer();
-  final Set<Polyline> _polyline = {};
-  PolylinePoints polylinePoints = PolylinePoints();
-  List<LatLng> polylineCoordinates = [];
-  Future<PolylineResult> getRouteFromWayPoints() {
-    return polylinePoints.getRouteBetweenCoordinates(
-        'test',
-        PointLatLng(widget.source!.lat, widget.source!.lng),
-        PointLatLng(widget.destination!.lat, widget.destination!.lng));
+
+  generateMarkerFromIcon(iconData, Color color, double size) async {
+    final pictureRecorder = PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
+    final iconStr = String.fromCharCode(iconData.codePoint);
+    textPainter.text = TextSpan(
+        text: iconStr,
+        style: TextStyle(
+          letterSpacing: 0.0,
+          fontSize: size,
+          fontFamily: iconData.fontFamily,
+          color: color,
+        ));
+    textPainter.layout();
+    textPainter.paint(canvas, Offset(0.0, 0.0));
+    final picture = pictureRecorder.endRecording();
+    final image = await picture.toImage(size.toInt(), size.toInt());
+    final bytes = await image.toByteData(format: ImageByteFormat.png);
+    final bitmapDescriptor =
+        BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
+    return bitmapDescriptor;
   }
 
   Set<Marker> getMarkers(
-      Position? position, AsyncSnapshot<QuerySnapshot>? busSnapshot) {
+    Position? position,
+    AsyncSnapshot<QuerySnapshot>? busSnapshot,
+    BitmapDescriptor busIconNonAC,
+    BitmapDescriptor busIconAC,
+    BitmapDescriptor busStopIcon,
+    BitmapDescriptor wayPointIcon,
+    BitmapDescriptor busStopDestinationIcon,
+    BitmapDescriptor userIcon,
+  ) {
     Set<Marker> markers = position == null
         ? {}
         : {
             Marker(
               markerId: const MarkerId("currentLocation"),
               position: LatLng(position.latitude, position.longitude),
-              // TODO: change icon of current location
               infoWindow: const InfoWindow(
                 title: "Current Location",
                 snippet: "Your current location",
               ),
+              icon: userIcon,
             ),
           };
     if (widget.destination != null && widget.source != null) {
@@ -61,12 +88,12 @@ class _MapComponentV2State extends State<MapComponentV2> {
         Marker(
           markerId: const MarkerId('destination'),
           position: LatLng(widget.destination!.lat, widget.destination!.lng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          icon: busStopDestinationIcon,
         ),
         Marker(
           markerId: const MarkerId('source'),
           position: LatLng(widget.source!.lat, widget.source!.lng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          icon: busStopIcon,
         ),
       });
     } else if (widget.destination != null) {
@@ -74,7 +101,7 @@ class _MapComponentV2State extends State<MapComponentV2> {
         Marker(
           markerId: const MarkerId('destination'),
           position: LatLng(widget.destination!.lat, widget.destination!.lng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          icon: busStopDestinationIcon,
         ),
       });
     } else if (widget.source != null) {
@@ -82,48 +109,27 @@ class _MapComponentV2State extends State<MapComponentV2> {
         Marker(
           markerId: const MarkerId('source'),
           position: LatLng(widget.source!.lat, widget.source!.lng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          icon: busStopIcon,
         ),
       });
     }
 
     if (busSnapshot != null) {
       if (widget.route != null) {
-        print('polylines promise');
-        Future<PolylineResult> resultFuture = getRouteFromWayPoints();
-        resultFuture.then((PolylineResult result) {
-          //TODO: update this
-          print('polylines');
-          print(result.points);
-          // if (result.isNotEmpty)
-          //   {
-          //     // loop through all PointLatLng points and convert them
-          //     // to a list of LatLng, required by the Polyline
-          //     result.forEach((PointLatLng point) {
-          //       polylineCoordinates
-          //           .add(LatLng(point.latitude, point.longitude));
-          //     })
-          //   }
-        });
-        print('data');
         List<Marker> busLocations = [];
 
         busSnapshot.data!.docs.forEach((DocumentSnapshot document) {
           dynamic data = document.data();
-          print(data);
           double lat = data['lat'];
           double lng = data['lng'];
           busLocations.add(Marker(
             markerId: MarkerId('bus${data['number']}'),
             position: LatLng(lat, lng),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueGreen),
+            icon: data['type'] == "AC" ? busIconAC : busIconNonAC,
           ));
         });
         // markers.clear();
-        print('adding markers');
         markers.addAll(busLocations);
-        print(markers);
       }
     }
     return markers;
@@ -145,33 +151,73 @@ class _MapComponentV2State extends State<MapComponentV2> {
   }
 
   GoogleMap googleMapBuilder(
-      currentPosition, AsyncSnapshot<QuerySnapshot> busSnapshot) {
+    currentPosition,
+    AsyncSnapshot<QuerySnapshot> busSnapshot,
+    BitmapDescriptor busIconNonAC,
+    busIconAC,
+    busStopIcon,
+    wayPointIcon,
+    busStopDestinationIcon,
+    userIcon,
+  ) {
     return GoogleMap(
       // onCameraMove: (CameraPosition position) {
       //   setState(() {
       //     cameraPosition = position;
       //   });
       // },
-      polylines: _polyline,
+      polylines: {
+        Polyline(
+          polylineId: PolylineId('line1'),
+          visible: true,
+          //latlng is List<LatLng>
+          points: widget.polylineCoordinates,
+          width: 2,
+          color: Colors.blue,
+        )
+      },
       mapType: MapType.normal,
       initialCameraPosition: getCameraPosition(currentPosition),
       onMapCreated: (GoogleMapController controller) {
         _controller.complete(controller);
-        setState(() {
-          _polyline.add(Polyline(
-            polylineId: PolylineId('line1'),
-            visible: true,
-            //latlng is List<LatLng>
-            points: polylineCoordinates,
-            width: 2,
-            color: Colors.blue,
-          ));
-        });
       },
       markers: (busSnapshot.connectionState != ConnectionState.waiting)
-          ? getMarkers(currentPosition, busSnapshot)
-          : getMarkers(currentPosition, null),
+          ? getMarkers(currentPosition, busSnapshot, busIconNonAC, busIconAC,
+              busStopIcon, wayPointIcon, busStopDestinationIcon, userIcon)
+          : getMarkers(currentPosition, null, busIconNonAC, busIconAC,
+              busStopIcon, wayPointIcon, busStopDestinationIcon, userIcon),
     );
+  }
+
+  getBusIcon() async {
+    print('updating busIcon');
+    BitmapDescriptor busIconNewNonAC =
+        await generateMarkerFromIcon(Icons.directions_bus, Colors.green, 100.0);
+    BitmapDescriptor busIconNewAC =
+        await generateMarkerFromIcon(Icons.directions_bus, Colors.red, 100.0);
+    BitmapDescriptor busStopNewSourceIcon =
+        await generateMarkerFromIcon(Icons.push_pin, Colors.red, 120.0);
+    BitmapDescriptor busStopNewDestinationIcon =
+        await generateMarkerFromIcon(Icons.push_pin, Colors.green, 120.0);
+    BitmapDescriptor wayPointNewIcon =
+        await generateMarkerFromIcon(Icons.push_pin, Colors.blue, 120.0);
+    BitmapDescriptor userIconNew =
+        await generateMarkerFromIcon(Icons.man, Colors.blue, 100.0);
+    setState(() {
+      busIconNonAC = busIconNewNonAC;
+      busIconAC = busIconNewAC;
+      busStopIcon = busStopNewSourceIcon;
+      busStopDestinationIcon = busStopNewDestinationIcon;
+      wayPointIcon = wayPointNewIcon;
+      userIcon = userIconNew;
+      print('updated busIcon');
+    });
+  }
+
+  @override
+  initState() {
+    getBusIcon();
+    super.initState();
   }
 
   @override
@@ -185,7 +231,15 @@ class _MapComponentV2State extends State<MapComponentV2> {
             .snapshots(),
         builder:
             (BuildContext context, AsyncSnapshot<QuerySnapshot> busSnapshot) {
-          return googleMapBuilder(widget.currentPosition, busSnapshot);
+          return googleMapBuilder(
+              widget.currentPosition,
+              busSnapshot,
+              busIconNonAC,
+              busIconAC,
+              busStopIcon,
+              wayPointIcon,
+              busStopDestinationIcon,
+              userIcon);
         },
       ),
       width: double.infinity,

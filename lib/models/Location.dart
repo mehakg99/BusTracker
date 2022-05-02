@@ -7,16 +7,19 @@ class Location {
   late final List<dynamic> routes;
   late final String name;
   late final double lat, lng;
+  late final DocumentReference<Map<String, dynamic>> id;
   Location(
       {required this.name,
       required this.lat,
       required this.lng,
-      required this.routes}) {}
+      required this.routes,
+      required this.id}) {}
   Location.fromDoc(doc) {
     name = doc['name'];
     lat = doc['lat'];
     lng = doc['lng'];
     routes = doc['routes'];
+    id = doc['id'];
   }
 
   double distanceFromLatLng(LatLng position) {

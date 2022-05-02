@@ -31,10 +31,20 @@ class _RouteSelectorState extends State<RouteSelector> {
   @override
   void initState() {
     super.initState();
-    getRoutes();
   }
 
-  getRoutes() async {
+  bool isValidRoute(RouteModal route) {
+    int indSource = route.stops.indexOf(widget.source!.id);
+    while (indSource < route.stops.length) {
+      if (route.stops[indSource] == widget.destination!.id) {
+        return true;
+      }
+      indSource++;
+    }
+    return false;
+  }
+
+  Future getRoutes(Location? source, Location? destination) {
     // CollectionReference busStops =
     //     FirebaseFirestore.instance.collection("/routes");
     //
@@ -52,14 +62,15 @@ class _RouteSelectorState extends State<RouteSelector> {
     List<Future> futures = commonElements
         .map<Future>((docReference) => docReference.get())
         .toList();
-    List dataFinal = await Future.wait(futures);
+    return Future.wait(futures);
+  }
 
-    setState(() {
-      routesData = dataFinal.map((snapshot) {
-        int index = dataFinal.indexOf(snapshot);
-        return {...snapshot.data(), "id": commonElements[index]};
-      }).toList();
-    });
+  List getCommonRoutes() {
+    List lists = [widget.source!.routes, widget.destination!.routes];
+    List commonElements = lists
+        .fold<Set>(lists.first.toSet(), (a, b) => a.intersection(b.toSet()))
+        .toList();
+    return commonElements;
   }
 
   @override
@@ -90,29 +101,48 @@ class _RouteSelectorState extends State<RouteSelector> {
           ),
           Expanded(
             child: SingleChildScrollView(
-              child: Column(
-                children: routesData
-                    .map((route) => Card(
-                          child: ListTile(
-                            minLeadingWidth: 5,
-                            leading: Icon(
-                              Icons.call_split,
-                              color: Colors.blue,
-                            ),
-                            title: Row(children: [
-                              Text(
-                                route['name'],
-                                style: TextStyle(fontSize: 16),
+                child: FutureBuilder(
+              future: getRoutes(widget.source, widget.destination),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  dynamic obj = snapshot;
+                  List commonElements = getCommonRoutes();
+                  List<dynamic> data = obj.data;
+                  List routesDataTemp = data.map((tempSnapshot) {
+                    int index = obj.data!.indexOf(tempSnapshot);
+                    return RouteModal.fromDoc(
+                        {...tempSnapshot.data(), "id": commonElements[index]});
+                  }).toList();
+                  routesData = routesDataTemp
+                      .where((route) => isValidRoute(route))
+                      .toList();
+                  return (Column(
+                    children: routesData
+                        .map((route) => Card(
+                              child: ListTile(
+                                minLeadingWidth: 5,
+                                leading: Icon(
+                                  Icons.call_split,
+                                  color: Colors.blue,
+                                ),
+                                title: Row(children: [
+                                  Text(
+                                    route.name,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                ]),
+                                onTap: () {
+                                  widget.setRoute(route);
+                                },
                               ),
-                            ]),
-                            onTap: () {
-                              widget.setRoute(RouteModal.fromDoc(route));
-                            },
-                          ),
-                        ))
-                    .toList(),
-              ),
-            ),
+                            ))
+                        .toList(),
+                  ));
+                } else {
+                  return Container();
+                }
+              },
+            )),
           ),
         ],
       ),
