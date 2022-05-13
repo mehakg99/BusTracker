@@ -1,7 +1,6 @@
 import 'package:bus_tracker/components/contact_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:bus_tracker/components/bottom_navbar.dart';
 
 class EmergencyContacts extends StatefulWidget {
   const EmergencyContacts({Key? key}) : super(key: key);
@@ -29,15 +28,15 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
           element["name"] == item["name"] &&
           element["contact"] == item["contact"]);
     });
-    _removeContact(item["name"]);
+    _deleteUser(item["name"]);
   }
 
-  _removeContact(name) async {
+  _deleteUser(name) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.remove(name);
   }
 
-  _saveContact(userName, userContact) async {
+  _saveUser(userName, userContact) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setInt(userName, int.parse(userContact));
   }
@@ -59,7 +58,7 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
       setState(() {
         userDets.add({'name': name, 'contact': contact});
       });
-      _saveContact(name, contact);
+      _saveUser(name, contact);
       Navigator.pop(context, 'Save');
     }
   }
@@ -125,27 +124,17 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
     );
   }
 
-  void clearPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.clear();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        bottomNavigationBar: const BottomNavbar(selectedIndex: 1),
-        appBar: AppBar(
-          title: const Text('Contact Details'),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(15),
-          child: userDets.isEmpty
-              ? GestureDetector(
-                  onTap: () {
-                    clearPrefs();
-                  },
-                  child: const Center(
+    return Padding(
+      padding: const EdgeInsets.all(15),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          userDets.isEmpty
+              ? const Expanded(
+                  child: Center(
                     child: Text(
                       'No contacts added',
                       style: TextStyle(
@@ -154,23 +143,23 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
                     ),
                   ),
                 )
-              : SingleChildScrollView(
-                  child: Column(
-                      children: userDets
-                          .map<Widget>(
-                            (contactDets) => ContactTile(
-                                contactDets: contactDets,
-                                deleteContactHandler: deleteContactHandler),
-                          )
-                          .toList()),
+              : Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                        children: userDets
+                            .map<Widget>(
+                              (contactDets) => ContactTile(
+                                  contactDets: contactDets,
+                                  deleteContactHandler: deleteContactHandler),
+                            )
+                            .toList()),
+                  ),
                 ),
-        ),
-        floatingActionButton: userDets.length == 5
-            ? null
-            : FloatingActionButton(
-                onPressed: () => addNewContact(),
-                child: const Icon(Icons.add),
-              ),
+          FloatingActionButton(
+            onPressed: () => addNewContact(),
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:bus_tracker/pages/index.dart';
 import 'package:bus_tracker/pages/select_destination.dart';
 import 'package:bus_tracker/pages/emergency_contacts.dart';
 
@@ -59,7 +60,7 @@ class _MispBusTrackerState extends State<MispBusTracker> {
   }
 
   Widget getCurrentComponent() {
-    return isLoadedVisible ? const SelectDestination() : SplashScreen(isLoaded);
+    return isLoadedVisible ? Index() : SplashScreen(isLoaded);
   }
 
   @override

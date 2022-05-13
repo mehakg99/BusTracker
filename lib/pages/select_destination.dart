@@ -6,7 +6,6 @@ import 'package:bus_tracker/components/pickup_component.dart';
 import 'package:bus_tracker/components/route_selector.dart';
 import 'package:bus_tracker/components/selected_route.dart';
 import 'package:bus_tracker/components/selected_source.dart';
-import 'package:bus_tracker/components/bottom_navbar.dart';
 import 'package:bus_tracker/models/Location.dart';
 import 'package:bus_tracker/models/Route.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -28,7 +27,11 @@ class SelectDestination extends StatefulWidget {
   State<SelectDestination> createState() => _SelectDestinationState();
 }
 
-class _SelectDestinationState extends State<SelectDestination> {
+class _SelectDestinationState extends State<SelectDestination>
+    with AutomaticKeepAliveClientMixin<SelectDestination> {
+  @override
+  bool get wantKeepAlive => true;
+
   List<Location> destinationsData = [];
   void swapStops() {
     if (destination != null && source != null) {
@@ -204,149 +207,141 @@ class _SelectDestinationState extends State<SelectDestination> {
   //
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        bottomNavigationBar: const BottomNavbar(selectedIndex: 0),
-        body: StreamBuilder<Position>(
-            stream: positionStream,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Center(
-                  child: Text('Error: ${snapshot.error}'),
-                );
-              }
-              Position? currentPosition = snapshot.data;
-              return locationPermissionProvided
-                  ? Stack(
-                      alignment: Alignment.bottomCenter,
+    super.build(context);
+    return StreamBuilder<Position>(
+        stream: positionStream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
+          Position? currentPosition = snapshot.data;
+          return locationPermissionProvided
+              ? Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.max,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Expanded(
-                              child: Stack(
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              MapComponentV2(
+                                route: route,
+                                destination: destination,
+                                source: source,
+                                currentPosition: currentPosition,
+                                isLoading: !snapshot.hasData,
+                                polylineCoordinates: polylineCoordinates,
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.max,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  MapComponentV2(
-                                    route: route,
-                                    destination: destination,
-                                    source: source,
-                                    currentPosition: currentPosition,
-                                    isLoading: !snapshot.hasData,
-                                    polylineCoordinates: polylineCoordinates,
+                                  Flexible(
+                                    child: Column(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 20,
+                                              left: 10,
+                                              right: 0,
+                                              bottom: 0),
+                                          child: FloatingInputField(
+                                            destination: destination,
+                                            source: source,
+                                            title: "Destination",
+                                            listData: destinationsData,
+                                            setDestination: setDestination,
+                                          ),
+                                        ),
+                                        (source != null)
+                                            ? SelectedSource(
+                                                setSource: setSource,
+                                                source: source!.name,
+                                              )
+                                            : Container(),
+                                      ],
+                                    ),
                                   ),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
-                                      Flexible(
+                                      SizedBox(
+                                        // width: 50,
+                                        height: 200,
                                         child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
                                           children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  top: 20,
-                                                  left: 10,
-                                                  right: 0,
-                                                  bottom: 0),
-                                              child: FloatingInputField(
-                                                destination: destination,
-                                                source: source,
-                                                title: "Destination",
-                                                listData: destinationsData,
-                                                setDestination: setDestination,
+                                            TextButton(
+                                              onPressed: (source != null &&
+                                                      destination != null)
+                                                  ? swapStops
+                                                  : null,
+                                              child: const Icon(
+                                                Icons.swap_vert,
+                                                size: 40,
                                               ),
                                             ),
-                                            (source != null)
-                                                ? SelectedSource(
-                                                    setSource: setSource,
-                                                    source: source!.name,
-                                                  )
-                                                : Container(),
                                           ],
                                         ),
-                                      ),
-                                      Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          SizedBox(
-                                            // width: 50,
-                                            height: 200,
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                TextButton(
-                                                  onPressed: (source != null &&
-                                                          destination != null)
-                                                      ? swapStops
-                                                      : null,
-                                                  child: const Icon(
-                                                    Icons.swap_vert,
-                                                    size: 40,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
                                       ),
                                     ],
                                   ),
                                 ],
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                        FractionallySizedBox(
-                            heightFactor: 0.4,
-                            child: ((source == null)
-                                ? PickUpComponent(
-                                    destination: destination,
-                                    source: source,
-                                    setSource: setSource,
-                                    listData: destinationsData,
-                                    currentPosition: currentPosition,
-                                    isLoading: !snapshot.hasData,
-                                  )
-                                : (source != null && destination != null)
-                                    ? (route == null)
-                                        ? RouteSelector(
-                                            source: source,
-                                            destination: destination,
-                                            setRoute: setRoute)
-                                        : SelectedRoute(
-                                            route: route!.name,
-                                            setRoute: setRoute)
-                                    : Container())),
-                        // TODO: SHOW LOCATION PERMISSION MODAL HERE
                       ],
-                    )
-                  : Container(
-                      color: Colors.blue,
-                      child: Center(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image(image: AssetImage('assets/logo.png')),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Text(
-                                'The location service on the device is disabled.',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ]),
-                      ),
-                    );
-            }),
-      ),
-    );
+                    ),
+                    FractionallySizedBox(
+                        heightFactor: 0.4,
+                        child: ((source == null)
+                            ? PickUpComponent(
+                                destination: destination,
+                                source: source,
+                                setSource: setSource,
+                                listData: destinationsData,
+                                currentPosition: currentPosition,
+                                isLoading: !snapshot.hasData,
+                              )
+                            : (source != null && destination != null)
+                                ? (route == null)
+                                    ? RouteSelector(
+                                        source: source,
+                                        destination: destination,
+                                        setRoute: setRoute)
+                                    : SelectedRoute(
+                                        route: route!.name, setRoute: setRoute)
+                                : Container())),
+                    // TODO: SHOW LOCATION PERMISSION MODAL HERE
+                  ],
+                )
+              : Container(
+                  color: Colors.blue,
+                  child: Center(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image(image: AssetImage('assets/logo.png')),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Text(
+                            'The location service on the device is disabled.',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ]),
+                  ),
+                );
+        });
   }
 }
