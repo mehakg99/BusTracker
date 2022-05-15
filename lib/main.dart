@@ -76,9 +76,9 @@ class _MispBusTrackerState extends State<MispBusTracker> {
             return null;
         }
       },
-      routes: {
-        '/routes': (context) => const SelectDestination(),
-      },
+      // routes: {
+      //   '/routes': (context) => const SelectDestination(),
+      // },
       home: getCurrentComponent(),
     );
   }

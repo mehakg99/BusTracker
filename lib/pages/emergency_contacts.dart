@@ -138,7 +138,7 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
                     child: Text(
                       'No contacts added',
                       style: TextStyle(
-                        fontSize: 25,
+                        fontSize: 22,
                       ),
                     ),
                   ),

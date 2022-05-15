@@ -23,7 +23,7 @@ class ContactTile extends StatelessWidget {
           ),
           subtitle: Text(
             contactDets["contact"],
-            style: TextStyle(fontSize: 15),
+            style: TextStyle(fontSize: 16),
           ),
           trailing: GestureDetector(
               onTap: () {
