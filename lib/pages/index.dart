@@ -92,6 +92,7 @@ class _IndexState extends State<Index> {
         body: PageView(
           controller: _pageController,
           children: _pages,
+          physics: NeverScrollableScrollPhysics(),
         ),
       ),
     );
