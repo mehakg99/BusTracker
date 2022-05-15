@@ -72,6 +72,7 @@ class _SelectDestinationState extends State<SelectDestination>
   RouteModal? route;
   List<LatLng> polylineCoordinates = [];
   PolylinePoints polylinePoints = PolylinePoints();
+  List busStopWaypointsMarkers = [];
   bool locationPermissionProvided = true;
   Stream<Position>? positionStream;
 
@@ -80,6 +81,9 @@ class _SelectDestinationState extends State<SelectDestination>
     PointLatLng destinationObj =
         PointLatLng(destination!.lat, destination!.lng);
     List<PolylineWayPoint> busStopWayPoints = [];
+    setState(() {
+      busStopWaypointsMarkers = [];
+    });
     int destinationInd = route!.stops.indexOf(destination!.id);
     int sourceInd = route!.stops.indexOf(source!.id);
     for (DocumentReference element in route!.stops) {
@@ -94,9 +98,14 @@ class _SelectDestinationState extends State<SelectDestination>
       Location busStop = Location.fromDoc({...data.data(), 'id': element});
       PolylineWayPoint wayPoint =
           PolylineWayPoint(location: '${busStop.lat},${busStop.lng}');
+      print('adding waypoint!');
       busStopWayPoints.add(wayPoint);
+      setState(() {
+        busStopWaypointsMarkers.add(busStop);
+      });
     }
-
+    print('waypoints');
+    print(busStopWayPoints);
     return polylinePoints.getRouteBetweenCoordinates(
         dotenv.env['GOOGLE_API_KEY']!, sourceObj, destinationObj,
         wayPoints: busStopWayPoints);
@@ -235,6 +244,8 @@ class _SelectDestinationState extends State<SelectDestination>
                                 currentPosition: currentPosition,
                                 isLoading: !snapshot.hasData,
                                 polylineCoordinates: polylineCoordinates,
+                                busStopWaypointsMarkers:
+                                    busStopWaypointsMarkers,
                               ),
                               Row(
                                 mainAxisSize: MainAxisSize.max,
