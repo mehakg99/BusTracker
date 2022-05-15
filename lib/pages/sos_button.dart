@@ -37,13 +37,17 @@ class _SosButtonState extends State<SosButton> {
   void initState() {
     super.initState();
     _getContacts();
+    _addLocation(widget.snapshot.data);
+    setState(() {
+      dataRecieved = true;
+    });
   }
 
   final SmsSendStatusListener listener = (SendStatus status) {
     print("Message status: $status");
   };
 
-  void _sendSMS(String message, List<String> recipents) async {
+  void _sendSMS(String message) async {
     if (documentId != "") {
       telephony.sendSms(
           to: contacts.join(";"),
@@ -96,10 +100,6 @@ class _SosButtonState extends State<SosButton> {
     CollectionReference sosCollection =
         FirebaseFirestore.instance.collection("sosLocations");
     if (documentId == "") {
-      setState(() {
-        toUpdate = true;
-        locationShared = true;
-      });
       sosCollection.add({
         "lat": position?.latitude,
         "lng": position?.longitude,
@@ -146,12 +146,12 @@ class _SosButtonState extends State<SosButton> {
     if (toUpdate) {
       if (!dataRecieved) {
         _addLocation(currentPosition);
+        setState(() {
+          dataRecieved = true;
+        });
       } else {
         _updateLocation(currentPosition);
       }
-      setState(() {
-        dataRecieved = true;
-      });
     }
     return widget.locationPermissionProvided
         ? locationShared
@@ -194,10 +194,10 @@ class _SosButtonState extends State<SosButton> {
                         });
                       });
                       if (counter == 3) {
-                        _sendSMS("Test message", contacts);
                         setState(() {
                           toUpdate = true;
                         });
+                        _sendSMS("Test message");
                         _showMyDialog();
                         setState(() {
                           counter = 0;
