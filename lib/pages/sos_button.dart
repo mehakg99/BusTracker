@@ -23,7 +23,8 @@ class SosButton extends StatefulWidget {
   _SosButtonState createState() => _SosButtonState();
 }
 
-class _SosButtonState extends State<SosButton> with AutomaticKeepAliveClientMixin<SosButton>{
+class _SosButtonState extends State<SosButton>
+    with AutomaticKeepAliveClientMixin<SosButton> {
   @override
   bool get wantKeepAlive => true;
 
@@ -72,17 +73,17 @@ class _SosButtonState extends State<SosButton> with AutomaticKeepAliveClientMixi
     });
   }
 
-  Future<void> _showMyDialog() async {
+  Future<void> _showMyDialog(title, content) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Live Location'),
+          title: Text(title),
           content: SingleChildScrollView(
             child: ListBody(
-              children: const <Widget>[
-                Text('Your live location has been successfully shared'),
+              children: <Widget>[
+                Text(content),
               ],
             ),
           ),
@@ -185,48 +186,69 @@ class _SosButtonState extends State<SosButton> with AutomaticKeepAliveClientMixi
                     "Tap 3 times to send live location!",
                     style: TextStyle(fontSize: 20),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        counter++;
-                        activeButton = true;
-                        Future.delayed(Duration(milliseconds: 250), () {
-                          setState(() {
-                            activeButton = false;
-                          });
-                        });
-                      });
-                      if (counter == 3) {
-                        setState(() {
-                          toUpdate = true;
-                        });
-                        _sendSMS("Test message");
-                        _showMyDialog();
-                        setState(() {
-                          counter = 0;
-                          locationShared = true;
-                        });
-                      }
-                    },
-                    child: Container(
-                      width: 360,
-                      height: 460,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        shape: BoxShape.circle,
-                      ),
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: Container(
-                          width: 330,
-                          height: 430,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[350],
-                            shape: BoxShape.circle,
-                          ),
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Container(
+                  Container(
+                    width: 360,
+                    height: 460,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      shape: BoxShape.circle,
+                    ),
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        width: 330,
+                        height: 430,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[350],
+                          shape: BoxShape.circle,
+                        ),
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: Container(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  counter++;
+                                  _getContacts();
+                                  activeButton = true;
+                                  Future.delayed(Duration(milliseconds: 250),
+                                      () {
+                                    setState(() {
+                                      activeButton = false;
+                                    });
+                                  });
+                                });
+                                if (counter == 3) {
+                                  setState(() {
+                                    toUpdate = true;
+                                  });
+                                  if (contacts.isEmpty) {
+                                    _showMyDialog('Emergency Contacts',
+                                        'No emergency contacts have been added');
+                                  } else {
+                                    _sendSMS("Test message");
+                                    _showMyDialog('Live Location',
+                                        'Your live location has been successfully shared');
+                                    setState(() {
+                                      locationShared = true;
+                                    });
+                                  }
+                                  setState(() {
+                                    counter = 0;
+                                  });
+                                }
+                              },
+                              style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all(Colors.red),
+                                  shape:
+                                      MaterialStateProperty.all<CircleBorder>(
+                                    const CircleBorder(
+                                        side: BorderSide(color: Colors.red)),
+                                  ),
+                                  overlayColor:
+                                      MaterialStateProperty.all<Color>(
+                                          Colors.black12)),
                               child: const Center(
                                   child: Text(
                                 'SOS',
@@ -237,13 +259,13 @@ class _SosButtonState extends State<SosButton> with AutomaticKeepAliveClientMixi
                                   color: Colors.white,
                                 ),
                               )),
-                              width: 300,
-                              height: 400,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color:
-                                    activeButton ? Colors.red[400] : Colors.red,
-                              ),
+                            ),
+                            width: 300,
+                            height: 400,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color:
+                                  activeButton ? Colors.red[400] : Colors.red,
                             ),
                           ),
                         ),
