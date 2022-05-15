@@ -23,7 +23,10 @@ class SosButton extends StatefulWidget {
   _SosButtonState createState() => _SosButtonState();
 }
 
-class _SosButtonState extends State<SosButton> {
+class _SosButtonState extends State<SosButton> with AutomaticKeepAliveClientMixin<SosButton>{
+  @override
+  bool get wantKeepAlive => true;
+
   final Telephony telephony = Telephony.instance;
   List<String> contacts = [];
   int counter = 0;
