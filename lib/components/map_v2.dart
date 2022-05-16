@@ -160,15 +160,17 @@ class _MapComponentV2State extends State<MapComponentV2> {
       } else {
         resetCamera();
       }
-      for (Location busStop in widget.busStopWaypointsMarkers) {
-        markers.add(Marker(
-          markerId: MarkerId("${busStop.id}"),
-          position: LatLng(busStop.lat, busStop.lng),
-          icon: wayPointIcon,
-          infoWindow: InfoWindow(
-            title: busStop.name,
-          ),
-        ));
+      if (widget.route != null) {
+        for (Location busStop in widget.busStopWaypointsMarkers) {
+          markers.add(Marker(
+            markerId: MarkerId("${busStop.id}"),
+            position: LatLng(busStop.lat, busStop.lng),
+            icon: wayPointIcon,
+            infoWindow: InfoWindow(
+              title: busStop.name,
+            ),
+          ));
+        }
       }
     }
 
@@ -190,6 +192,7 @@ class _MapComponentV2State extends State<MapComponentV2> {
             ),
           ));
         });
+        // markers.clear();
         // markers.clear();
         markers.addAll(busLocations);
       }
