@@ -66,6 +66,7 @@ class _MispBusTrackerState extends State<MispBusTracker> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case '/p':
