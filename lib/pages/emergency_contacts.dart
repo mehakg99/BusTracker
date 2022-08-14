@@ -1,3 +1,4 @@
+import 'package:bus_tracker/components/contact_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,50 +16,27 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
   String contact = "";
   List userDets = [];
 
-  List<Widget> displayContacts() {
-    List<Widget> list = userDets
-        .map((item) => Padding(
-              padding: EdgeInsets.only(bottom: 5),
-              child: Card(
-                child: ListTile(
-                  leading: const Icon(
-                    Icons.person,
-                    size: 35,
-                  ),
-                  title: Text(
-                    item["name"],
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  subtitle: Text(
-                    item["contact"],
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  trailing: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          userDets.removeWhere((element) =>
-                              element["name"] == item["name"] &&
-                              element["contact"] == item["contact"]);
-                        });
-                        _removeContact(item["name"]);
-                      },
-                      child: const Icon(
-                        Icons.delete,
-                        color: Colors.red,
-                      )),
-                ),
-              ),
-            ))
-        .toList();
-    return list;
+  @override
+  initState() {
+    super.initState();
+    _getContacts();
   }
 
-  _removeContact(name) async {
+  void deleteContactHandler(item) {
+    setState(() {
+      userDets.removeWhere((element) =>
+          element["name"] == item["name"] &&
+          element["contact"] == item["contact"]);
+    });
+    _deleteUser(item["name"]);
+  }
+
+  _deleteUser(name) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.remove(name);
   }
 
-  _saveContact(userName, userContact) async {
+  _saveUser(userName, userContact) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setInt(userName, int.parse(userContact));
   }
@@ -66,10 +44,13 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
   _getContacts() async {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys();
-    final prefsMap = Map<String, int?>();
+    List savedUserDets = [];
     for (String key in keys) {
-      prefsMap[key] = prefs.getInt(key);
+      savedUserDets.add({'name': key, 'contact': prefs.getInt(key).toString()});
     }
+    setState(() {
+      userDets = savedUserDets;
+    });
   }
 
   void submitHandler() {
@@ -77,7 +58,7 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
       setState(() {
         userDets.add({'name': name, 'contact': contact});
       });
-      _saveContact(name, contact);
+      _saveUser(name, contact);
       Navigator.pop(context, 'Save');
     }
   }
@@ -143,46 +124,42 @@ class _EmergencyContactsState extends State<EmergencyContacts> {
     );
   }
 
-  void clearPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.clear();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Emergency Contacts'),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(15),
-          child: userDets.isEmpty
-              ? GestureDetector(
-                  onTap: () {
-                    clearPrefs();
-                  },
-                  child: const Center(
+    return Padding(
+      padding: const EdgeInsets.all(15),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          userDets.isEmpty
+              ? const Expanded(
+                  child: Center(
                     child: Text(
                       'No contacts added',
                       style: TextStyle(
-                        fontSize: 25,
+                        fontSize: 22,
                       ),
                     ),
                   ),
                 )
-              : SingleChildScrollView(
-                  child: Column(
-                    children: displayContacts(),
+              : Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                        children: userDets
+                            .map<Widget>(
+                              (contactDets) => ContactTile(
+                                  contactDets: contactDets,
+                                  deleteContactHandler: deleteContactHandler),
+                            )
+                            .toList()),
                   ),
                 ),
-        ),
-        floatingActionButton: userDets.length == 5
-            ? null
-            : FloatingActionButton(
-                onPressed: () => addNewContact(),
-                child: const Icon(Icons.add),
-              ),
+          FloatingActionButton(
+            onPressed: () => addNewContact(),
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }

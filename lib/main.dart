@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'package:bus_tracker/pages/index.dart';
 import 'package:bus_tracker/pages/select_destination.dart';
+import 'package:bus_tracker/pages/emergency_contacts.dart';
 
 import 'bus_tracker_routes.dart';
 import 'package:flutter/material.dart';
 import 'splash_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:page_transition/page_transition.dart';
 
 import 'firebase_options.dart';
 
@@ -57,15 +60,26 @@ class _MispBusTrackerState extends State<MispBusTracker> {
   }
 
   Widget getCurrentComponent() {
-    return isLoadedVisible ? const SelectDestination() : SplashScreen(isLoaded);
+    return isLoadedVisible ? Index() : SplashScreen(isLoaded);
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      routes: {
-        '/routes': (context) => const BusTrackerRoutes(),
+      debugShowCheckedModeBanner: false,
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/p':
+            return PageTransition(
+                child: getCurrentComponent(), type: PageTransitionType.scale);
+            break;
+          default:
+            return null;
+        }
       },
+      // routes: {
+      //   '/routes': (context) => const SelectDestination(),
+      // },
       home: getCurrentComponent(),
     );
   }

@@ -44,7 +44,7 @@ class _PickUpComponentState extends State<PickUpComponent> {
           .map((Location busStop) => {
                 "busStop": busStop,
                 "distance":
-                    busStop.distanceFromPosition(widget.currentPosition!)
+                    '${busStop.distanceFromPosition(widget.currentPosition!).toStringAsFixed(2)} km'
               })
           .toList();
     } else {
@@ -59,7 +59,7 @@ class _PickUpComponentState extends State<PickUpComponent> {
 
     distanceList.sort((a, b) => a["distance"].compareTo(b["distance"]));
     return (distanceList.length > 3)
-        ? distanceList.sublist(0, 2)
+        ? distanceList.sublist(0, 3)
         : distanceList;
   }
 

@@ -100,50 +100,59 @@ class _RouteSelectorState extends State<RouteSelector> {
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
-                child: FutureBuilder(
-              future: getRoutes(widget.source, widget.destination),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  dynamic obj = snapshot;
-                  List commonElements = getCommonRoutes();
-                  List<dynamic> data = obj.data;
-                  List routesDataTemp = data.map((tempSnapshot) {
-                    int index = obj.data!.indexOf(tempSnapshot);
-                    return RouteModal.fromDoc(
-                        {...tempSnapshot.data(), "id": commonElements[index]});
-                  }).toList();
-                  routesData = routesDataTemp
-                      .where((route) => isValidRoute(route))
-                      .toList();
-                  return (Column(
-                    children: routesData
-                        .map((route) => Card(
-                              child: ListTile(
-                                minLeadingWidth: 5,
-                                leading: Icon(
-                                  Icons.call_split,
-                                  color: Colors.blue,
-                                ),
-                                title: Row(children: [
-                                  Text(
-                                    route.name,
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ]),
-                                onTap: () {
-                                  widget.setRoute(route);
-                                },
-                              ),
-                            ))
-                        .toList(),
-                  ));
-                } else {
-                  return Container();
-                }
-              },
-            )),
-          ),
+              child: FutureBuilder(
+            future: getRoutes(widget.source, widget.destination),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                dynamic obj = snapshot;
+                List commonElements = getCommonRoutes();
+                List<dynamic> data = obj.data;
+                List routesDataTemp = data.map((tempSnapshot) {
+                  int index = obj.data!.indexOf(tempSnapshot);
+                  return RouteModal.fromDoc(
+                      {...tempSnapshot.data(), "id": commonElements[index]});
+                }).toList();
+                routesData = routesDataTemp
+                    .where((route) => isValidRoute(route))
+                    .toList();
+                return routesData.isEmpty
+                    ? Container(
+                        child: const Center(
+                          child: Text(
+                            'No routes available',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        child: (Column(
+                          children: routesData
+                              .map((route) => Card(
+                                    child: ListTile(
+                                      minLeadingWidth: 5,
+                                      leading: const Icon(
+                                        Icons.call_split,
+                                        color: Colors.blue,
+                                      ),
+                                      title: Row(children: [
+                                        Text(
+                                          route.name,
+                                          style: TextStyle(fontSize: 16),
+                                        ),
+                                      ]),
+                                      onTap: () {
+                                        widget.setRoute(route);
+                                      },
+                                    ),
+                                  ))
+                              .toList(),
+                        )),
+                      );
+              } else {
+                return Container();
+              }
+            },
+          )),
         ],
       ),
       decoration: BoxDecoration(

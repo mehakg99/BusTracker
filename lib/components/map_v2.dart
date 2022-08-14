@@ -14,6 +14,7 @@ class MapComponentV2 extends StatefulWidget {
   final Position? currentPosition;
   final bool isLoading;
   final List<LatLng> polylineCoordinates;
+  final List busStopWaypointsMarkers;
   const MapComponentV2({
     Key? key,
     required this.destination,
@@ -22,6 +23,7 @@ class MapComponentV2 extends StatefulWidget {
     required this.currentPosition,
     required this.isLoading,
     required this.polylineCoordinates,
+    required this.busStopWaypointsMarkers,
   }) : super(key: key);
 
   @override
@@ -35,7 +37,35 @@ class _MapComponentV2State extends State<MapComponentV2> {
   BitmapDescriptor busStopDestinationIcon = BitmapDescriptor.defaultMarker;
   BitmapDescriptor wayPointIcon = BitmapDescriptor.defaultMarker;
   BitmapDescriptor userIcon = BitmapDescriptor.defaultMarker;
+  late var myController;
   final Completer<GoogleMapController> _controller = Completer();
+  resetCameraFinal(Position? position) {
+    if (position != null) {
+      if (widget.destination != null && widget.source != null) {
+        updateCameraLocation(
+            LatLng(widget.source!.lat, widget.source!.lng),
+            LatLng(widget.destination!.lat, widget.destination!.lng),
+            myController);
+      } else if (widget.destination != null) {
+        updateCameraLocation(
+            LatLng(widget.destination!.lat, widget.destination!.lng),
+            LatLng(position.latitude, position.longitude),
+            myController);
+      } else if (widget.source != null) {
+        updateCameraLocation(LatLng(widget.source!.lat, widget.source!.lng),
+            LatLng(position.latitude, position.longitude), myController);
+      } else {
+        updateCameraLocation(LatLng(position.latitude, position.longitude),
+            LatLng(position.latitude, position.longitude), myController);
+      }
+    }
+  }
+
+  resetCamera() {
+    if (widget.currentPosition != null) {
+      resetCameraFinal(widget.currentPosition);
+    }
+  }
 
   generateMarkerFromIcon(iconData, Color color, double size) async {
     final pictureRecorder = PictureRecorder();
@@ -78,40 +108,70 @@ class _MapComponentV2State extends State<MapComponentV2> {
               position: LatLng(position.latitude, position.longitude),
               infoWindow: const InfoWindow(
                 title: "Current Location",
-                snippet: "Your current location",
               ),
               icon: userIcon,
             ),
           };
-    if (widget.destination != null && widget.source != null) {
-      markers.addAll({
-        Marker(
-          markerId: const MarkerId('destination'),
-          position: LatLng(widget.destination!.lat, widget.destination!.lng),
-          icon: busStopDestinationIcon,
-        ),
-        Marker(
-          markerId: const MarkerId('source'),
-          position: LatLng(widget.source!.lat, widget.source!.lng),
-          icon: busStopIcon,
-        ),
-      });
-    } else if (widget.destination != null) {
-      markers.addAll({
-        Marker(
-          markerId: const MarkerId('destination'),
-          position: LatLng(widget.destination!.lat, widget.destination!.lng),
-          icon: busStopDestinationIcon,
-        ),
-      });
-    } else if (widget.source != null) {
-      markers.addAll({
-        Marker(
-          markerId: const MarkerId('source'),
-          position: LatLng(widget.source!.lat, widget.source!.lng),
-          icon: busStopIcon,
-        ),
-      });
+    if (position != null) {
+      if (widget.destination != null && widget.source != null) {
+        markers.addAll({
+          Marker(
+            markerId: const MarkerId('destination'),
+            position: LatLng(widget.destination!.lat, widget.destination!.lng),
+            icon: busStopDestinationIcon,
+            infoWindow: InfoWindow(
+              title: widget.destination?.name,
+            ),
+          ),
+          Marker(
+            markerId: const MarkerId('source'),
+            position: LatLng(widget.source!.lat, widget.source!.lng),
+            icon: busStopIcon,
+            infoWindow: InfoWindow(
+              title: widget.source?.name,
+            ),
+          ),
+        });
+        resetCamera();
+      } else if (widget.destination != null) {
+        markers.addAll({
+          Marker(
+            markerId: const MarkerId('destination'),
+            position: LatLng(widget.destination!.lat, widget.destination!.lng),
+            icon: busStopDestinationIcon,
+            infoWindow: InfoWindow(
+              title: widget.destination?.name,
+            ),
+          ),
+        });
+        resetCamera();
+      } else if (widget.source != null) {
+        markers.addAll({
+          Marker(
+            markerId: const MarkerId('source'),
+            position: LatLng(widget.source!.lat, widget.source!.lng),
+            icon: busStopIcon,
+            infoWindow: InfoWindow(
+              title: widget.source?.name,
+            ),
+          ),
+        });
+        resetCamera();
+      } else {
+        resetCamera();
+      }
+      if (widget.route != null) {
+        for (Location busStop in widget.busStopWaypointsMarkers) {
+          markers.add(Marker(
+            markerId: MarkerId("${busStop.id}"),
+            position: LatLng(busStop.lat, busStop.lng),
+            icon: wayPointIcon,
+            infoWindow: InfoWindow(
+              title: busStop.name,
+            ),
+          ));
+        }
+      }
     }
 
     if (busSnapshot != null) {
@@ -126,8 +186,13 @@ class _MapComponentV2State extends State<MapComponentV2> {
             markerId: MarkerId('bus${data['number']}'),
             position: LatLng(lat, lng),
             icon: data['type'] == "AC" ? busIconAC : busIconNonAC,
+            infoWindow: InfoWindow(
+              title: "${data['number']}",
+              snippet: "Size: ${data['size']}",
+            ),
           ));
         });
+        // markers.clear();
         // markers.clear();
         markers.addAll(busLocations);
       }
@@ -179,6 +244,9 @@ class _MapComponentV2State extends State<MapComponentV2> {
       mapType: MapType.normal,
       initialCameraPosition: getCameraPosition(currentPosition),
       onMapCreated: (GoogleMapController controller) {
+        setState(() {
+          myController = controller;
+        });
         _controller.complete(controller);
       },
       markers: (busSnapshot.connectionState != ConnectionState.waiting)
@@ -187,6 +255,46 @@ class _MapComponentV2State extends State<MapComponentV2> {
           : getMarkers(currentPosition, null, busIconNonAC, busIconAC,
               busStopIcon, wayPointIcon, busStopDestinationIcon, userIcon),
     );
+  }
+
+  Future<void> updateCameraLocation(
+    LatLng source,
+    LatLng destination,
+    GoogleMapController mapController,
+  ) async {
+    if (mapController == null) return;
+
+    LatLngBounds bounds;
+
+    if (source.latitude > destination.latitude &&
+        source.longitude > destination.longitude) {
+      bounds = LatLngBounds(southwest: destination, northeast: source);
+    } else if (source.longitude > destination.longitude) {
+      bounds = LatLngBounds(
+          southwest: LatLng(source.latitude, destination.longitude),
+          northeast: LatLng(destination.latitude, source.longitude));
+    } else if (source.latitude > destination.latitude) {
+      bounds = LatLngBounds(
+          southwest: LatLng(destination.latitude, source.longitude),
+          northeast: LatLng(source.latitude, destination.longitude));
+    } else {
+      bounds = LatLngBounds(southwest: source, northeast: destination);
+    }
+
+    CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 70);
+
+    return checkCameraLocation(cameraUpdate, mapController);
+  }
+
+  Future<void> checkCameraLocation(
+      CameraUpdate cameraUpdate, GoogleMapController mapController) async {
+    mapController.animateCamera(cameraUpdate);
+    LatLngBounds l1 = await mapController.getVisibleRegion();
+    LatLngBounds l2 = await mapController.getVisibleRegion();
+
+    if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90) {
+      return checkCameraLocation(cameraUpdate, mapController);
+    }
   }
 
   getBusIcon() async {
@@ -200,7 +308,7 @@ class _MapComponentV2State extends State<MapComponentV2> {
     BitmapDescriptor busStopNewDestinationIcon =
         await generateMarkerFromIcon(Icons.push_pin, Colors.green, 120.0);
     BitmapDescriptor wayPointNewIcon =
-        await generateMarkerFromIcon(Icons.push_pin, Colors.blue, 120.0);
+        await generateMarkerFromIcon(Icons.adjust, Colors.blueGrey, 60.0);
     BitmapDescriptor userIconNew =
         await generateMarkerFromIcon(Icons.man, Colors.blue, 100.0);
     setState(() {
@@ -222,28 +330,56 @@ class _MapComponentV2State extends State<MapComponentV2> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      child: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('buses')
-            .where('route',
-                isEqualTo: (widget.route != null) ? (widget.route!.id) : (null))
-            .snapshots(),
-        builder:
-            (BuildContext context, AsyncSnapshot<QuerySnapshot> busSnapshot) {
-          return googleMapBuilder(
-              widget.currentPosition,
-              busSnapshot,
-              busIconNonAC,
-              busIconAC,
-              busStopIcon,
-              wayPointIcon,
-              busStopDestinationIcon,
-              userIcon);
-        },
+    return Stack(children: [
+      SizedBox(
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('buses')
+              .where('route',
+                  isEqualTo:
+                      (widget.route != null) ? (widget.route!.id) : (null))
+              .snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> busSnapshot) {
+            return googleMapBuilder(
+                widget.currentPosition,
+                busSnapshot,
+                busIconNonAC,
+                busIconAC,
+                busStopIcon,
+                wayPointIcon,
+                busStopDestinationIcon,
+                userIcon);
+          },
+        ),
+        width: double.infinity,
+        height: double.infinity,
       ),
-      width: double.infinity,
-      height: double.infinity,
-    );
+      Container(
+        width: double.infinity,
+        height: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                resetCamera();
+              },
+              child: Icon(Icons.location_searching, color: Colors.white),
+              style: ElevatedButton.styleFrom(
+                shape: CircleBorder(),
+                padding: EdgeInsets.all(2),
+                primary: Colors.blue, // <-- Button color
+                onPrimary: Colors.red, // <-- Splash color
+              ),
+            ),
+            SizedBox(
+              height: 100,
+            )
+          ],
+        ),
+      ),
+    ]);
   }
 }
